@@ -11,8 +11,7 @@ import { getUserReviews } from '@/services/reviewService';
 import { getOrCreateConversation } from '@/services/messageService';
 import type { Profile, ProductWithSeller, ReviewWithUsers } from '@/lib/database.types';
 import { xpForNextLevel } from '@/lib/database.types';
-
-const BAM_RATE = 1.95583;
+import { BAM_RATE } from '@/lib/constants';
 
 function formatTimeLabel(createdAt: string): string {
   const diff = Date.now() - new Date(createdAt).getTime();

@@ -38,7 +38,7 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
       </div>
 
       {/* DESKTOP HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-20 px-6 md:px-8 flex items-center justify-between glass-nav border-b border-[var(--c-border)] backdrop-blur-xl transition-all duration-300 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 md:h-20 px-4 md:px-6 lg:px-8 flex items-center justify-between glass-nav border-b border-[var(--c-border)] backdrop-blur-xl transition-all duration-300 shadow-sm">
 
         {/* LEFT: Logo & Brand + Info Buttons */}
         <div className="flex items-center gap-4">
@@ -47,15 +47,15 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
             onClick={() => router.push('/')}
             onKeyDown={(e) => e.key === 'Enter' && router.push('/')}
             aria-label="NudiNađi — idi na početnu stranicu"
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2 md:gap-3 cursor-pointer group"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo2.jpeg"
               alt="NudiNađi emblem"
-              className="h-11 w-auto object-contain rounded-xl transition-transform group-hover:scale-105"
+              className="h-9 md:h-11 w-auto object-contain rounded-xl transition-transform group-hover:scale-105"
             />
-            <span className="hidden md:inline text-2xl font-black tracking-tight text-[#1e293b] group-hover:text-blue-600 transition-colors">
+            <span className="text-lg md:text-2xl font-black tracking-tight text-[#1e293b] group-hover:text-blue-600 transition-colors">
               nudi<span className="text-[#1e293b]">nađi</span>
             </span>
           </button>
@@ -84,17 +84,6 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
           </div>
         </div>
 
-        {/* Mobile Logo */}
-        <div className="md:hidden flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo2.jpeg"
-            alt="NudiNađi emblem"
-            className="h-9 w-auto object-contain rounded-lg"
-          />
-          <span className="text-lg font-black tracking-tight text-[#1e293b]">nudinađi</span>
-        </div>
-
         {/* Desktop Centered "Novi Oglas" Button */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
           <Link
@@ -112,27 +101,27 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
         </div>
 
         {/* RIGHT: User Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1.5 md:gap-4">
 
           {/* Search/Home Button (visible everywhere except Home) */}
           {!isHome && (
             <button
               onClick={() => router.push('/')}
-              className="w-10 h-10 rounded-[12px] flex items-center justify-center bg-[var(--c-card-alt)] border border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-active)] transition-colors mr-1"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-[10px] md:rounded-[12px] flex items-center justify-center bg-[var(--c-card-alt)] border border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-active)] transition-colors mr-0.5 md:mr-1"
               aria-label="Nazad na pretragu"
             >
-              <i className="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+              <i className="fa-solid fa-magnifying-glass text-xs md:text-sm" aria-hidden="true"></i>
             </button>
           )}
 
           {/* Header Right Custom Actions */}
           {headerRight && <div className="mr-2">{headerRight}</div>}
 
-          {/* Messages Icon — only when logged in */}
+          {/* Messages Icon — only when logged in, hidden on mobile (in bottom nav) */}
           {isAuthenticated && (
           <Link
             href="/messages"
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+            className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center transition-all border ${
               pathname === '/messages'
                 ? 'bg-blue-500 text-white border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]'
                 : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
@@ -146,10 +135,10 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
           </Link>
           )}
 
-          {/* Cart Icon */}
+          {/* Cart Icon — responsive size */}
           <Link
             href="/cart"
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all border ${
               pathname === '/cart'
                 ? 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                 : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
@@ -157,19 +146,19 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
             aria-label={`Korpa${cartItems.length > 0 ? ` (${cartItems.length})` : ''}`}
           >
             <div className="relative" aria-hidden="true">
-              <i className="fa-solid fa-bag-shopping text-sm"></i>
+              <i className="fa-solid fa-bag-shopping text-xs md:text-sm"></i>
               {cartItems.length > 0 && (
-                <div className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-emerald-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
-                  <span className="text-[8px] font-black text-white">{cartItems.length}</span>
+                <div className="absolute -top-2 -right-2.5 min-w-[16px] h-[16px] md:min-w-[18px] md:h-[18px] bg-emerald-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
+                  <span className="text-[7px] md:text-[8px] font-black text-white">{cartItems.length}</span>
                 </div>
               )}
             </div>
           </Link>
 
-          {/* Notification Bell */}
+          {/* Notification Bell — responsive size */}
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all border ${
               showNotifications
                 ? 'bg-amber-500 text-white border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
                 : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
@@ -178,20 +167,20 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
             aria-expanded={showNotifications}
           >
             <div className="relative" aria-hidden="true">
-              <i className="fa-solid fa-bell text-sm"></i>
+              <i className="fa-solid fa-bell text-xs md:text-sm"></i>
               {unreadCount > 0 && (
-                <div className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
-                  <span className="text-[8px] font-black text-white">{unreadCount}</span>
+                <div className="absolute -top-2 -right-2.5 min-w-[16px] h-[16px] md:min-w-[18px] md:h-[18px] bg-red-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
+                  <span className="text-[7px] md:text-[8px] font-black text-white">{unreadCount}</span>
                 </div>
               )}
             </div>
           </button>
 
-          {/* Settings / Menu Icon — only when logged in */}
+          {/* Settings / Menu Icon — only when logged in, hidden on mobile (in bottom nav) */}
           {isAuthenticated && (
           <Link
             href="/menu"
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+            className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center transition-all border ${
               pathname === '/menu'
                 ? 'bg-gray-900 text-white border-gray-800 shadow-[0_0_15px_rgba(0,0,0,0.2)]'
                 : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
@@ -205,17 +194,17 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
           {/* Divider */}
           <div className="w-[1px] h-8 bg-[var(--c-border)] mx-1 hidden md:block"></div>
 
-          {/* Profile Avatar / Guest Button */}
+          {/* Profile Avatar / Guest Button — responsive */}
           {isAuthenticated && user ? (
             <Link
               href="/profile"
-              className={`relative group flex items-center gap-3 pl-1 pr-1 md:pr-4 py-1 rounded-full transition-all border ${
+              className={`relative group flex items-center gap-2 md:gap-3 pl-1 pr-1 md:pr-4 py-1 rounded-full transition-all border ${
                 pathname === '/profile'
                   ? 'bg-[var(--c-card-alt)] border-blue-500/50'
                   : 'border-transparent hover:bg-[var(--c-card-alt)]'
               }`}
             >
-              <div className={`w-9 h-9 rounded-full p-[2px] ${pathname === '/profile' ? 'blue-gradient' : 'bg-[var(--c-border)] group-hover:bg-[var(--c-active)]'}`}>
+              <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full p-[2px] ${pathname === '/profile' ? 'blue-gradient' : 'bg-[var(--c-border)] group-hover:bg-[var(--c-active)]'}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={user.avatarUrl || 'https://picsum.photos/seed/me/200/200'}
@@ -231,10 +220,10 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
           ) : (
             <Link
               href="/login"
-              className="relative group flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full transition-all border border-[var(--c-border)] hover:bg-[var(--c-card-alt)]"
+              className="relative group flex items-center gap-1.5 md:gap-2 pl-1.5 md:pl-2 pr-2 md:pr-3 py-1 md:py-1.5 rounded-full transition-all border border-[var(--c-border)] hover:bg-[var(--c-card-alt)]"
             >
-              <div className="w-9 h-9 rounded-full bg-[var(--c-card-alt)] border border-[var(--c-border)] flex items-center justify-center">
-                <i className="fa-solid fa-user-slash text-sm text-[var(--c-text3)]"></i>
+              <div className="w-7 h-7 md:w-9 md:h-9 rounded-full bg-[var(--c-card-alt)] border border-[var(--c-border)] flex items-center justify-center">
+                <i className="fa-solid fa-user-slash text-xs md:text-sm text-[var(--c-text3)]"></i>
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-[11px] font-black leading-none text-[var(--c-text2)] uppercase tracking-widest">GOST</p>
@@ -251,7 +240,7 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
       {/* HOW IT WORKS MODAL */}
       {showHowItWorks && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-6 md:p-10"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 lg:p-10"
           role="dialog"
           aria-modal="true"
           aria-labelledby="how-it-works-title"
@@ -261,20 +250,20 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
             onClick={() => setShowHowItWorks(false)}
             onKeyDown={(e) => e.key === 'Escape' && setShowHowItWorks(false)}
           ></div>
-          <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col" style={{ height: 'min(85vh, 700px)' }}>
+          <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col overflow-hidden" style={{ height: 'min(85vh, 700px)' }}>
 
             {/* HEADER */}
-            <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--c-border)]">
-              <div className="flex items-center gap-3">
+            <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[var(--c-border)]">
+              <div className="flex items-center gap-2 md:gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logo2.jpeg"
                   alt="NudiNađi emblem"
-                  className="h-10 w-auto object-contain rounded-xl"
+                  className="h-8 md:h-10 w-auto object-contain rounded-xl"
                 />
                 <div>
-                  <p className="text-base font-black text-[#1e293b] tracking-tight leading-none">nudinađi</p>
-                  <p className="text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-0.5">AI Powered Marketplace</p>
+                  <p className="text-sm md:text-base font-black text-[#1e293b] tracking-tight leading-none">nudinađi</p>
+                  <p className="text-[7px] md:text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-0.5">AI Powered Marketplace</p>
                 </div>
               </div>
               <button
@@ -286,22 +275,22 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
               </button>
             </div>
 
-            {/* BODY — flex-1, no scroll, content fills height */}
-            <div className="flex-1 flex flex-col px-6 py-5 gap-5 min-h-0">
+            {/* BODY — scrollable on mobile */}
+            <div className="flex-1 flex flex-col px-4 md:px-6 py-4 md:py-5 gap-4 md:gap-5 min-h-0 overflow-y-auto">
 
               {/* TOP ROW: Hero + Stats */}
-              <div className="flex gap-6 shrink-0">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 shrink-0">
                 <div className="flex-1">
-                  <h2 id="how-it-works-title" className="text-4xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-3">
+                  <h2 id="how-it-works-title" className="text-2xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-2 md:mb-3">
                     TRGOVINA<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">REDEFINIRANA.</span>
                   </h2>
-                  <div className="w-10 h-[3px] bg-blue-500 mb-3"></div>
-                  <p className="text-[12px] text-[var(--c-text2)] leading-relaxed max-w-[380px]">
+                  <div className="w-10 h-[3px] bg-blue-500 mb-2 md:mb-3"></div>
+                  <p className="text-[11px] md:text-[12px] text-[var(--c-text2)] leading-relaxed max-w-[380px]">
                     NudiNađi nije samo još jedan oglasnik. To je inteligentni ekosistem koji razumije šta želiš, prije nego što to i sam znaš.
                   </p>
                 </div>
-                <div className="flex gap-3 shrink-0">
+                <div className="hidden md:flex gap-3 shrink-0">
                   <div className="w-36 bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4">
                     <i className="fa-solid fa-bolt text-[var(--c-text3)] text-xl mb-3 block"></i>
                     <p className="text-3xl font-black text-[var(--c-text)] leading-none mb-1">0.2s</p>
@@ -321,8 +310,8 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
                 <p className="text-[9px] font-black text-[var(--c-text3)] uppercase tracking-[0.25em]">Kako to zapravo radi?</p>
               </div>
 
-              {/* FEATURE CARDS — flex-1 to fill remaining height */}
-              <div className="grid grid-cols-3 gap-4 flex-1 min-h-0">
+              {/* FEATURE CARDS — responsive grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-1 min-h-0">
                 <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-blue-500/40 transition-colors flex flex-col">
                   <div className="absolute top-0 right-0 w-14 h-14 bg-blue-500/20 rounded-bl-[35px]"></div>
                   <div className="w-10 h-10 rounded-[4px] bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4 shrink-0">
@@ -358,11 +347,11 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
               </div>
 
               {/* BOTTOM QUOTE */}
-              <div className="shrink-0 text-center pt-4 border-t border-[var(--c-border)]">
-                <p className="text-lg font-black text-[var(--c-text)] uppercase tracking-tight mb-1">
+              <div className="shrink-0 text-center pt-3 md:pt-4 border-t border-[var(--c-border)]">
+                <p className="text-sm md:text-lg font-black text-[var(--c-text)] uppercase tracking-tight mb-1">
                   &ldquo;Tehnologija koja radi za tebe.&rdquo;
                 </p>
-                <p className="text-[8px] font-bold text-[var(--c-text-muted)] uppercase tracking-[0.3em]">Powered by NudiNađi AI Core</p>
+                <p className="text-[7px] md:text-[8px] font-bold text-[var(--c-text-muted)] uppercase tracking-[0.3em]">Powered by NudiNađi AI Core</p>
               </div>
 
             </div>
@@ -372,7 +361,7 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
 
       {/* GUEST LOGIN BANNER */}
       {!authLoading && !isAuthenticated && (
-        <div className="fixed top-20 left-0 right-0 z-40 bg-blue-600 text-white px-4 py-2.5 flex items-center justify-center gap-3">
+        <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-blue-600 text-white px-4 py-2 md:py-2.5 flex items-center justify-center gap-2 md:gap-3">
           <i className="fa-solid fa-user-plus text-xs opacity-80"></i>
           <span className="text-[11px] font-bold">Gost si — prijavi se ili napravi profil!</span>
           <Link href="/login" className="ml-2 px-3 py-1 bg-white text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-blue-50 transition-colors">
@@ -382,7 +371,7 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 flex flex-col ${!authLoading && !isAuthenticated ? 'pt-32' : 'pt-24'} min-w-0 relative z-10`}>
+      <div className={`flex-1 flex flex-col ${!authLoading && !isAuthenticated ? 'pt-28 md:pt-32' : 'pt-20 md:pt-24'} min-w-0 relative z-10`}>
 
         {/* SECURITY INFO MODAL */}
         {showSecurityInfo && (

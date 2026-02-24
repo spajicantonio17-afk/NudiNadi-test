@@ -61,7 +61,7 @@ function PillGroup<T extends string>({
           className={`flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[11px] font-semibold transition-all active:scale-95 border ${
             value === opt.value
               ? activeClass
-              : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-700 dark:hover:text-gray-200'
+              : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700'
           }`}
         >
           <i className={`fa-solid ${opt.icon} text-[10px]`}></i>
@@ -86,12 +86,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[16px] p-4">
+    <div className="bg-gray-50 border border-gray-100 rounded-[16px] p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className={`w-6 h-6 rounded-[8px] ${accent} flex items-center justify-center`}>
           <i className={`fa-solid ${icon} text-white text-[10px]`}></i>
         </div>
-        <span className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">{label}</span>
+        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</span>
       </div>
       {children}
     </div>
@@ -147,21 +147,21 @@ export default function FilterModal({
     <div className="fixed inset-0 z-[150] flex items-start justify-center pt-24 pb-4 px-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-white dark:bg-[#0D1821] border border-gray-200 dark:border-white/10 w-full max-w-2xl rounded-[28px] shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] max-h-[calc(100vh-7rem)] flex flex-col">
+      <div className="relative bg-white border border-gray-200 w-full max-w-2xl rounded-[28px] shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] max-h-[calc(100vh-7rem)] flex flex-col">
 
         {/* Decorative glow */}
-        <div className="absolute top-0 left-0 w-48 h-48 bg-blue-50 dark:bg-blue-500/5 rounded-full blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-50 dark:bg-purple-500/5 rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-48 h-48 bg-blue-50 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-50 rounded-full blur-[60px] pointer-events-none" />
 
         {/* ── Header ── */}
-        <div className="relative z-10 shrink-0 px-6 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+        <div className="relative z-10 shrink-0 px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[12px] bg-blue-500 flex items-center justify-center shadow-md shadow-blue-500/20">
               <i className="fa-solid fa-sliders text-white text-sm"></i>
             </div>
             <div>
-              <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight leading-none">Filteri</h2>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight leading-none">Filteri</h2>
+              <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-0.5">
                 {activeCount > 0 ? `${activeCount} aktivan filter${activeCount > 1 ? 'a' : ''}` : 'Prilagodi pretragu'}
               </p>
             </div>
@@ -170,14 +170,14 @@ export default function FilterModal({
             {activeCount > 0 && (
               <button
                 onClick={handleReset}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-500 text-[10px] font-bold hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-500 text-[10px] font-bold hover:bg-red-100 transition-colors"
               >
                 <i className="fa-solid fa-rotate-left text-[9px]"></i> Reset
               </button>
             )}
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <i className="fa-solid fa-xmark"></i>
             </button>
@@ -195,7 +195,7 @@ export default function FilterModal({
               <div className="flex gap-2">
                 <button
                   onClick={onLocationClick}
-                  className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[12px] text-[12px] font-semibold text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all"
+                  className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-[12px] text-[12px] font-semibold text-gray-700 hover:border-blue-300 transition-all"
                 >
                   <i className="fa-solid fa-map-marker-alt text-blue-500 text-[11px] shrink-0"></i>
                   <span className="truncate">{locationName || 'Sve Lokacije'}</span>
@@ -205,7 +205,7 @@ export default function FilterModal({
                   onClick={onDetectGPS}
                   disabled={isDetectingGPS}
                   title="Otkrij moju lokaciju"
-                  className="w-11 h-11 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[12px] flex items-center justify-center text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all disabled:opacity-50 shrink-0"
+                  className="w-11 h-11 bg-white border border-gray-200 rounded-[12px] flex items-center justify-center text-blue-500 hover:bg-blue-50 hover:border-blue-300 transition-all disabled:opacity-50 shrink-0"
                 >
                   <i className={`fa-solid fa-crosshairs text-sm ${isDetectingGPS ? 'animate-spin' : ''}`}></i>
                 </button>
@@ -216,13 +216,13 @@ export default function FilterModal({
             <Section icon="fa-bullseye" label="Radius pretrage" accent="bg-purple-500">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-400 dark:text-gray-500">Udaljenost</span>
-                  <span className="text-[13px] font-black text-gray-800 dark:text-white">
+                  <span className="text-[11px] text-gray-400">Udaljenost</span>
+                  <span className="text-[13px] font-black text-gray-800">
                     {filters.radiusKm === 0 ? 'Neograničeno' : `${filters.radiusKm} km`}
                   </span>
                 </div>
                 <div className="relative">
-                  <div className="w-full h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all"
                       style={{ width: `${radiusPct}%` }}
@@ -236,7 +236,7 @@ export default function FilterModal({
                     className="absolute inset-0 w-full opacity-0 cursor-pointer h-2"
                   />
                 </div>
-                <div className="flex justify-between text-[9px] text-gray-400 dark:text-gray-600">
+                <div className="flex justify-between text-[9px] text-gray-400">
                   <span>0</span><span>50</span><span>100</span><span>150</span><span>200 km</span>
                 </div>
               </div>
@@ -246,25 +246,25 @@ export default function FilterModal({
           {/* ROW 2: Price Range (full width) */}
           <Section icon="fa-euro-sign" label="Raspon Cijena" accent="bg-green-500">
             <div className="flex gap-3 items-center mb-3">
-              <div className="flex-1 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[12px] px-3 py-2 focus-within:border-green-400 dark:focus-within:border-green-500/40 transition-colors">
+              <div className="flex-1 bg-white border border-gray-200 rounded-[12px] px-3 py-2 focus-within:border-green-400 transition-colors">
                 <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Min €</p>
                 <input
                   type="number"
                   value={filters.priceMin}
                   onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
                   placeholder="0"
-                  className="w-full bg-transparent text-[15px] font-bold text-gray-800 dark:text-white placeholder:text-gray-300 dark:placeholder:text-gray-700 outline-none"
+                  className="w-full bg-transparent text-[15px] font-bold text-gray-800 placeholder:text-gray-300 outline-none"
                 />
               </div>
-              <div className="text-gray-300 dark:text-gray-600 font-bold text-lg shrink-0">—</div>
-              <div className="flex-1 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[12px] px-3 py-2 focus-within:border-green-400 dark:focus-within:border-green-500/40 transition-colors">
+              <div className="text-gray-300 font-bold text-lg shrink-0">—</div>
+              <div className="flex-1 bg-white border border-gray-200 rounded-[12px] px-3 py-2 focus-within:border-green-400 transition-colors">
                 <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Max €</p>
                 <input
                   type="number"
                   value={filters.priceMax}
                   onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
                   placeholder="∞"
-                  className="w-full bg-transparent text-[15px] font-bold text-gray-800 dark:text-white placeholder:text-gray-300 dark:placeholder:text-gray-700 outline-none"
+                  className="w-full bg-transparent text-[15px] font-bold text-gray-800 placeholder:text-gray-300 outline-none"
                 />
               </div>
             </div>
@@ -281,8 +281,8 @@ export default function FilterModal({
                   onClick={() => setFilters({ ...filters, priceMax: v.max })}
                   className={`flex-1 py-1.5 rounded-[8px] text-[9px] font-bold transition-all active:scale-95 border ${
                     filters.priceMax === v.max
-                      ? 'text-green-600 dark:text-green-400 border-green-400 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10'
-                      : 'text-gray-400 dark:text-gray-500 border-gray-200 dark:border-white/5 hover:text-green-600 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-500/30'
+                      ? 'text-green-600 border-green-400 bg-green-50'
+                      : 'text-gray-400 border-gray-200 hover:text-green-600 hover:border-green-300'
                   }`}
                 >
                   {v.label}
@@ -303,7 +303,7 @@ export default function FilterModal({
                 ]}
                 value={filters.condition}
                 onChange={(v) => setFilters({ ...filters, condition: v })}
-                activeClass="bg-orange-50 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-500/30"
+                activeClass="bg-orange-50 text-orange-600 border-orange-300"
               />
             </Section>
 
@@ -317,7 +317,7 @@ export default function FilterModal({
                 ]}
                 value={filters.sortBy}
                 onChange={(v) => setFilters({ ...filters, sortBy: v })}
-                activeClass="bg-cyan-50 dark:bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-300 dark:border-cyan-500/30"
+                activeClass="bg-cyan-50 text-cyan-600 border-cyan-300"
               />
             </Section>
           </div>
@@ -333,7 +333,7 @@ export default function FilterModal({
                 ]}
                 value={filters.delivery}
                 onChange={(v) => setFilters({ ...filters, delivery: v })}
-                activeClass="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
+                activeClass="bg-emerald-50 text-emerald-600 border-emerald-300"
               />
             </Section>
 
@@ -346,7 +346,7 @@ export default function FilterModal({
                 ]}
                 value={filters.sellerType}
                 onChange={(v) => setFilters({ ...filters, sellerType: v })}
-                activeClass="bg-pink-50 dark:bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-300 dark:border-pink-500/30"
+                activeClass="bg-pink-50 text-pink-600 border-pink-300"
               />
             </Section>
           </div>
@@ -362,7 +362,7 @@ export default function FilterModal({
               ]}
               value={filters.timePosted}
               onChange={(v) => setFilters({ ...filters, timePosted: v })}
-              activeClass="bg-yellow-50 dark:bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-300 dark:border-yellow-500/30"
+              activeClass="bg-yellow-50 text-yellow-600 border-yellow-300"
             />
           </Section>
 
@@ -370,10 +370,10 @@ export default function FilterModal({
         </div>
 
         {/* ── Footer ── */}
-        <div className="relative z-10 shrink-0 px-5 py-4 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#0D1821] flex gap-3">
+        <div className="relative z-10 shrink-0 px-5 py-4 border-t border-gray-100 bg-white flex gap-3">
           <button
             onClick={handleReset}
-            className="px-5 py-3.5 rounded-[14px] bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 font-bold text-[11px] uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-white/10 transition-colors active:scale-95 flex items-center gap-2"
+            className="px-5 py-3.5 rounded-[14px] bg-gray-100 border border-gray-200 text-gray-600 font-bold text-[11px] uppercase tracking-widest hover:bg-gray-200 transition-colors active:scale-95 flex items-center gap-2"
           >
             <i className="fa-solid fa-rotate-left text-[10px]"></i> Reset
           </button>

@@ -54,7 +54,7 @@ function convToContact(conv: ConversationWithUsers, myId: string): ContactItem {
     id: conv.id,
     name: other?.username || 'Korisnik',
     item: 'Poruka',
-    snippet: conv.last_message_at ? 'Imaju poruke...' : 'Početak razgovora',
+    snippet: conv.last_message?.content || (conv.last_message_at ? 'Poruka...' : 'Početak razgovora'),
     time: formatTime(conv.last_message_at),
     avatar: other?.avatar_url || `https://picsum.photos/seed/${other?.username || conv.id}/100/100`,
     otherUserId: other?.id || '',
@@ -359,18 +359,22 @@ function MessagesContent() {
         {/* --- LEFT SIDEBAR (People) --- */}
         <div className="w-[60px] md:w-[260px] lg:w-[300px] flex flex-col gap-3 shrink-0 transition-all duration-300">
 
-          {/* Search */}
+          {/* Search — desktop: full input, mobile: icon-only button */}
           <div className="relative group shrink-0">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <i className="fa-solid fa-magnifying-glass text-[var(--c-text3)] text-xs group-focus-within:text-blue-400"></i>
+            {/* Desktop search input */}
+            <div className="hidden md:block relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i className="fa-solid fa-magnifying-glass text-[var(--c-text3)] text-xs group-focus-within:text-blue-400"></i>
+              </div>
+              <input
+                type="text"
+                placeholder={t('messages.search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--c-card)] border border-[var(--c-border)] rounded-[16px] py-3.5 pl-10 pr-4 text-xs text-[var(--c-text)] placeholder:text-[var(--c-placeholder)] outline-none focus:border-blue-500/30 transition-all"
+              />
             </div>
-            <input
-              type="text"
-              placeholder={t('messages.search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--c-card)] border border-[var(--c-border)] rounded-[16px] py-3.5 pl-10 pr-4 text-xs text-[var(--c-text)] placeholder:text-[var(--c-placeholder)] outline-none focus:border-blue-500/30 transition-all hidden md:block"
-            />
+            {/* Mobile search button */}
             <button className="w-full h-12 bg-[var(--c-card)] rounded-[16px] border border-[var(--c-border)] flex items-center justify-center md:hidden text-[var(--c-text3)]">
               <i className="fa-solid fa-magnifying-glass"></i>
             </button>
@@ -426,11 +430,11 @@ function MessagesContent() {
         </div>
 
         {/* --- RIGHT CHAT AREA --- */}
-        <div className="flex-1 bg-[var(--c-card)]/50 backdrop-blur-md rounded-[32px] border border-[var(--c-border)] flex flex-col relative overflow-hidden shadow-2xl">
+        <div className="flex-1 bg-white/50 backdrop-blur-md rounded-[32px] border border-[var(--c-border)] flex flex-col relative overflow-hidden shadow-2xl">
           {activeContact ? (
             <>
               {/* Chat Header */}
-              <div className="h-20 border-b border-[var(--c-border)] flex items-center justify-between px-6 bg-[var(--c-card)]/80 shrink-0">
+              <div className="h-20 border-b border-[var(--c-border)] flex items-center justify-between px-6 bg-white/80 shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

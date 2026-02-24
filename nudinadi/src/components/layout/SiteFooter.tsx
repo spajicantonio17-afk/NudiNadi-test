@@ -1,10 +1,10 @@
 import Link from 'next/link';
 
 export default function SiteFooter() {
-  const linkClass = "text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors";
+  const linkClass = "text-[11px] text-gray-500 hover:text-gray-900 transition-colors";
 
   return (
-    <footer className="border-t border-gray-200 dark:border-[var(--c-border)] bg-gray-50 dark:bg-[var(--c-bg)] px-4 md:px-8 pt-10 pb-40 md:pb-16 mt-8">
+    <footer className="border-t border-gray-200 bg-gray-50 px-4 md:px-8 pt-10 pb-40 md:pb-16 mt-8">
       <div className="max-w-5xl mx-auto">
 
         {/* TOP SECTION */}
@@ -16,22 +16,22 @@ export default function SiteFooter() {
               <div className="w-8 h-8 rounded-lg blue-gradient flex items-center justify-center">
                 <span className="font-black text-white italic text-sm">N</span>
               </div>
-              <span className="text-lg font-black text-gray-900 dark:text-white tracking-tighter">NudiNađi</span>
+              <span className="text-lg font-black text-gray-900 tracking-tighter">NudiNađi</span>
             </div>
             <p className="text-[11px] text-gray-500 leading-relaxed mb-4 max-w-[220px]">
               Moderna platforma za kupovinu i prodaju. AI podrška, sigurne transakcije, brza pretraga.
             </p>
             <div className="flex gap-2">
-              <span className="w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-gray-200 dark:border-[var(--c-border)] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer shadow-sm">
                 <i className="fa-brands fa-instagram text-xs"></i>
               </span>
-              <span className="w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-gray-200 dark:border-[var(--c-border)] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer shadow-sm">
                 <i className="fa-brands fa-facebook-f text-xs"></i>
               </span>
-              <span className="w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-gray-200 dark:border-[var(--c-border)] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer shadow-sm">
                 <i className="fa-brands fa-tiktok text-xs"></i>
               </span>
-              <span className="w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-gray-200 dark:border-[var(--c-border)] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer shadow-sm">
                 <i className="fa-brands fa-twitter text-xs"></i>
               </span>
             </div>
@@ -39,7 +39,7 @@ export default function SiteFooter() {
 
           {/* Marketplace Links */}
           <div>
-            <h4 className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Marketplace</h4>
+            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4">Marketplace</h4>
             <ul className="space-y-2.5">
               <li><Link href="/?category=Vozila" className={linkClass}>Vozila</Link></li>
               <li><Link href="/?category=Nekretnine" className={linkClass}>Nekretnine</Link></li>
@@ -51,7 +51,7 @@ export default function SiteFooter() {
 
           {/* Company Links */}
           <div>
-            <h4 className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Kompanija</h4>
+            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4">Kompanija</h4>
             <ul className="space-y-2.5">
               <li><Link href="/o-nama" className={linkClass}>O Nama</Link></li>
               <li><Link href="/karijere" className={linkClass}>Karijere</Link></li>
@@ -63,7 +63,7 @@ export default function SiteFooter() {
 
           {/* Support / Legal Links */}
           <div>
-            <h4 className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Podrška</h4>
+            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4">Podrška</h4>
             <ul className="space-y-2.5">
               <li><Link href="/pomoc" className={linkClass}>Pomoć / FAQ</Link></li>
               <li><Link href="/kontakt" className={linkClass}>Kontakt</Link></li>
@@ -75,7 +75,7 @@ export default function SiteFooter() {
         </div>
 
         {/* APP DOWNLOAD */}
-        <div className="py-6 border-t border-gray-200 dark:border-[var(--c-border)]">
+        <div className="py-6 border-t border-gray-200">
           <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">Preuzmi Aplikaciju</p>
           <div className="flex gap-2">
             <span className="flex items-center gap-2 px-3 py-2 bg-gray-900 border border-gray-800 rounded-[10px] cursor-pointer hover:bg-gray-800 transition-colors">
@@ -96,7 +96,7 @@ export default function SiteFooter() {
         </div>
 
         {/* BOTTOM BAR: Impressum + Copyright */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 py-6 border-t border-gray-200 dark:border-[var(--c-border)]">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 py-6 border-t border-gray-200">
           <div className="flex flex-wrap items-center gap-3 text-[9px] text-gray-400">
             <Link href="/o-nama" className="hover:text-gray-600 transition-colors">O nama</Link>
             <span>·</span>

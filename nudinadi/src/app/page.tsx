@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import ProductCard from '@/components/ProductCard';
 import CategoryButton from '@/components/CategoryButton';
 import LocationPicker from '@/components/LocationPicker';
 import FilterModal, { DEFAULT_FILTERS, type FilterState } from '@/components/FilterModal';
-import { CATEGORIES, CATEGORY_IMAGES } from '@/lib/constants';
+import { CATEGORIES, CATEGORY_IMAGES, BAM_RATE } from '@/lib/constants';
 import { matchesSearch, parseAiQuery } from '@/lib/utils';
 import { getProducts } from '@/services/productService';
 import type { ProductFull } from '@/lib/database.types';
@@ -25,8 +25,6 @@ const AI_CONDITION_MAP: Record<string, string> = {
   'Korišteno': 'used',
   'Koristeno': 'used',
 };
-
-const BAM_RATE = 1.95583;
 
 function formatTimeLabel(createdAt: string): string {
   const diff = Date.now() - new Date(createdAt).getTime();
@@ -105,6 +103,11 @@ function HomeContent() {
   const [isDetectingGPS, setIsDetectingGPS] = useState(false);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const PRODUCTS_PER_PAGE = 24;
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useFavorites(); // keeps Supabase session in sync (used by ProductCard internally)
   const { showToast } = useToast();
@@ -114,14 +117,53 @@ function HomeContent() {
     setSelectedLocation(getSelectedLocation());
   }, []);
 
-  // Load real products from Supabase
+  // Load real products from Supabase (initial)
   useEffect(() => {
     setIsLoadingProducts(true);
-    getProducts({ status: 'active', limit: 80, sortBy: 'created_at', sortOrder: 'desc' })
-      .then(({ data }) => setDbProducts(data.map(dbToDisplayProduct)))
+    getProducts({ status: 'active', limit: PRODUCTS_PER_PAGE, offset: 0, sortBy: 'created_at', sortOrder: 'desc' })
+      .then(({ data, count }) => {
+        setDbProducts(data.map(dbToDisplayProduct));
+        setTotalCount(count);
+        setHasMore(data.length >= PRODUCTS_PER_PAGE && data.length < count);
+      })
       .catch(err => console.error('Failed to load products:', err))
       .finally(() => setIsLoadingProducts(false));
   }, []);
+
+  // Load more products
+  const loadMoreProducts = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const { data, count } = await getProducts({
+        status: 'active',
+        limit: PRODUCTS_PER_PAGE,
+        offset: dbProducts.length,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      });
+      const newProducts = data.map(dbToDisplayProduct);
+      setDbProducts(prev => [...prev, ...newProducts]);
+      setTotalCount(count);
+      setHasMore(dbProducts.length + newProducts.length < count);
+    } catch (err) {
+      console.error('Failed to load more products:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, dbProducts.length]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMoreProducts(); },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMoreProducts]);
 
   // Sync category to URL
   const handleCategoryChange = (cat: string) => {
@@ -325,19 +367,19 @@ function HomeContent() {
 
         {/* AI INFO MODAL */}
         {showAiInfo && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-10" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-6 lg:p-10" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
             <div className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-sm" onClick={() => setShowAiInfo(false)} onKeyDown={(e) => e.key === 'Escape' && setShowAiInfo(false)} role="presentation"></div>
-            <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col" style={{ height: 'min(85vh, 700px)' }}>
+            <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col" style={{ height: 'min(90vh, 700px)' }}>
 
               {/* HEADER */}
-              <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--c-border)]">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-[4px] bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                    <i className="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
+              <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[var(--c-border)]">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-9 md:h-9 rounded-[4px] bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <i className="fa-solid fa-wand-magic-sparkles text-white text-xs md:text-sm"></i>
                   </div>
                   <div>
-                    <p className="text-[13px] font-black text-[var(--c-text)] tracking-tight leading-none">AI PRETRAGA</p>
-                    <p className="text-[8px] font-bold text-purple-400 uppercase tracking-[0.2em] mt-0.5">NudiNađi Smart Engine</p>
+                    <p className="text-[12px] md:text-[13px] font-black text-[var(--c-text)] tracking-tight leading-none">AI PRETRAGA</p>
+                    <p className="text-[7px] md:text-[8px] font-bold text-purple-400 uppercase tracking-[0.2em] mt-0.5">NudiNađi Smart Engine</p>
                   </div>
                 </div>
                 <button onClick={() => setShowAiInfo(false)} aria-label="Zatvori" className="w-8 h-8 rounded-[4px] bg-[var(--c-hover)] hover:bg-[var(--c-active)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-all">
@@ -346,12 +388,12 @@ function HomeContent() {
               </div>
 
               {/* BODY */}
-              <div className="flex-1 flex flex-col px-6 py-5 gap-5 min-h-0 overflow-y-auto">
+              <div className="flex-1 flex flex-col px-4 md:px-6 py-4 md:py-5 gap-4 md:gap-5 min-h-0 overflow-y-auto">
 
                 {/* TOP ROW: Hero + Stats */}
-                <div className="flex gap-6 shrink-0">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6 shrink-0">
                   <div className="flex-1">
-                    <h2 id="ai-modal-title" className="text-4xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-3">
+                    <h2 id="ai-modal-title" className="text-2xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-2 md:mb-3">
                       PRETRAGA<br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-600">BEZ LIMITA.</span>
                     </h2>
@@ -467,19 +509,19 @@ function HomeContent() {
 
         {/* SECURITY MODAL */}
         {showLocalSecurity && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-10" role="dialog" aria-modal="true" aria-labelledby="security-modal-title">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-6 lg:p-10" role="dialog" aria-modal="true" aria-labelledby="security-modal-title">
             <div className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-sm" onClick={() => setShowLocalSecurity(false)} onKeyDown={(e) => e.key === 'Escape' && setShowLocalSecurity(false)} role="presentation"></div>
-            <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col" style={{ height: 'min(85vh, 700px)' }}>
+            <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col overflow-hidden" style={{ height: 'min(90vh, 700px)' }}>
 
               {/* HEADER */}
-              <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--c-border)]">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-[4px] bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <i className="fa-solid fa-shield-halved text-white text-sm"></i>
+              <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[var(--c-border)]">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-9 md:h-9 rounded-[4px] bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <i className="fa-solid fa-shield-halved text-white text-xs md:text-sm"></i>
                   </div>
                   <div>
-                    <p className="text-[13px] font-black text-[var(--c-text)] tracking-tight leading-none">AI ZAŠTITA</p>
-                    <p className="text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-0.5">Sigurnost na prvom mjestu</p>
+                    <p className="text-[12px] md:text-[13px] font-black text-[var(--c-text)] tracking-tight leading-none">AI ZAŠTITA</p>
+                    <p className="text-[7px] md:text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-0.5">Sigurnost na prvom mjestu</p>
                   </div>
                 </div>
                 <button onClick={() => setShowLocalSecurity(false)} aria-label="Zatvori" className="w-8 h-8 rounded-[4px] bg-[var(--c-hover)] hover:bg-[var(--c-active)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-all">
@@ -488,12 +530,12 @@ function HomeContent() {
               </div>
 
               {/* BODY */}
-              <div className="flex-1 flex flex-col px-6 py-5 gap-5 min-h-0 overflow-y-auto">
+              <div className="flex-1 flex flex-col px-4 md:px-6 py-4 md:py-5 gap-4 md:gap-5 min-h-0 overflow-y-auto">
 
                 {/* TOP ROW: Hero + Stats */}
-                <div className="flex gap-6 shrink-0">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6 shrink-0">
                   <div className="flex-1">
-                    <h2 id="security-modal-title" className="text-4xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-3">
+                    <h2 id="security-modal-title" className="text-2xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-2 md:mb-3">
                       SIGURNO<br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-500">KUPUJ &amp; PRODAJ.</span>
                     </h2>
@@ -522,48 +564,48 @@ function HomeContent() {
                   <p className="text-[9px] font-black text-[var(--c-text3)] uppercase tracking-[0.25em]">Kako te štitimo?</p>
                 </div>
 
-                {/* FEATURE CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
-                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-blue-500/40 transition-colors flex flex-col">
+                {/* FEATURE CARDS — responsive grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-1 min-h-0">
+                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4 md:p-5 relative overflow-hidden hover:border-blue-500/40 transition-colors flex flex-col">
                     <div className="absolute top-0 right-0 w-14 h-14 bg-blue-500/20 rounded-bl-[35px]"></div>
-                    <div className="w-10 h-10 rounded-[4px] bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4 shrink-0">
-                      <i className="fa-solid fa-user-shield text-blue-400 text-sm"></i>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-[4px] bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-3 md:mb-4 shrink-0">
+                      <i className="fa-solid fa-user-shield text-blue-400 text-xs md:text-sm"></i>
                     </div>
-                    <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">Anti-Scam<br />Detekcija</h3>
-                    <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
-                      AI skenira svaki oglas i poruku u realnom vremenu. <span className="text-[var(--c-text)] font-bold">Sumnjive aktivnosti</span> se automatski označavaju i blokiraju prije nego dođu do tebe.
+                    <h3 className="text-[10px] md:text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-1.5 md:mb-2">Anti-Scam Detekcija</h3>
+                    <p className="text-[9px] md:text-[10px] text-[var(--c-text3)] leading-relaxed">
+                      AI skenira svaki oglas i poruku u realnom vremenu. <span className="text-[var(--c-text)] font-bold">Sumnjive aktivnosti</span> se automatski označavaju i blokiraju.
                     </p>
                   </div>
 
-                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-emerald-500/40 transition-colors flex flex-col">
+                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4 md:p-5 relative overflow-hidden hover:border-emerald-500/40 transition-colors flex flex-col">
                     <div className="absolute top-0 right-0 w-14 h-14 bg-emerald-500/20 rounded-bl-[35px]"></div>
-                    <div className="w-10 h-10 rounded-[4px] bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4 shrink-0">
-                      <i className="fa-solid fa-fingerprint text-emerald-400 text-sm"></i>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-[4px] bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-3 md:mb-4 shrink-0">
+                      <i className="fa-solid fa-fingerprint text-emerald-400 text-xs md:text-sm"></i>
                     </div>
-                    <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">Verifikacija<br />Identiteta</h3>
-                    <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
-                      Sistem verificira korisnike kroz više nivoa provjere. <span className="text-[var(--c-text)] font-bold">Trust Score</span> algoritam ocjenjuje pouzdanost svakog prodavca na platformi.
+                    <h3 className="text-[10px] md:text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-1.5 md:mb-2">Verifikacija Identiteta</h3>
+                    <p className="text-[9px] md:text-[10px] text-[var(--c-text3)] leading-relaxed">
+                      Sistem verificira korisnike kroz više nivoa provjere. <span className="text-[var(--c-text)] font-bold">Trust Score</span> ocjenjuje pouzdanost svakog prodavca.
                     </p>
                   </div>
 
-                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-purple-500/40 transition-colors flex flex-col">
+                  <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4 md:p-5 relative overflow-hidden hover:border-purple-500/40 transition-colors flex flex-col">
                     <div className="absolute top-0 right-0 w-14 h-14 bg-purple-500/20 rounded-bl-[35px]"></div>
-                    <div className="w-10 h-10 rounded-[4px] bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4 shrink-0">
-                      <i className="fa-solid fa-comment-slash text-purple-400 text-sm"></i>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-[4px] bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-3 md:mb-4 shrink-0">
+                      <i className="fa-solid fa-comment-slash text-purple-400 text-xs md:text-sm"></i>
                     </div>
-                    <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">Smart Chat<br />Filter</h3>
-                    <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
+                    <h3 className="text-[10px] md:text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-1.5 md:mb-2">Smart Chat Filter</h3>
+                    <p className="text-[9px] md:text-[10px] text-[var(--c-text3)] leading-relaxed">
                       AI analizira poruke i detektuje <span className="text-[var(--c-text)] font-bold">phishing linkove</span>, lažne ponude i pokušaje preusmjeravanja van platforme.
                     </p>
                   </div>
                 </div>
 
                 {/* BOTTOM QUOTE */}
-                <div className="shrink-0 text-center pt-4 border-t border-[var(--c-border)]">
-                  <p className="text-lg font-black text-[var(--c-text)] uppercase tracking-tight mb-1">
+                <div className="shrink-0 text-center pt-3 md:pt-4 border-t border-[var(--c-border)]">
+                  <p className="text-sm md:text-lg font-black text-[var(--c-text)] uppercase tracking-tight mb-1">
                     &ldquo;Tvoja sigurnost je naš prioritet.&rdquo;
                   </p>
-                  <p className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-[0.3em]">Powered by NudiNađi AI Security</p>
+                  <p className="text-[7px] md:text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-[0.3em]">Powered by NudiNađi AI Security</p>
                 </div>
               </div>
             </div>
@@ -571,7 +613,7 @@ function HomeContent() {
         )}
 
         {/* STICKY HEADER SECTION */}
-        <div className="sticky top-16 z-30 bg-[var(--c-glass)] backdrop-blur-xl -mx-4 px-4 pt-3 pb-0 border-b border-gray-200/80 dark:border-white/5 shadow-sm transition-all">
+        <div className="sticky top-16 md:top-20 z-30 bg-[var(--c-glass)] backdrop-blur-xl -mx-4 px-4 pt-2 md:pt-3 pb-0 border-b border-gray-200/80 shadow-sm transition-all">
 
           {/* TOP ROW: Security right */}
           <div className="flex items-center justify-end mb-2 px-1">
@@ -595,7 +637,7 @@ function HomeContent() {
                 aria-label="Otvori sve kategorije"
                 aria-expanded={showAllCatsPopup}
                 aria-haspopup="dialog"
-                className="relative z-10 bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] w-[50px] rounded-[20px] flex items-center justify-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors active:scale-95 group shadow-sm shrink-0"
+                className="relative z-10 bg-white border border-gray-200 w-[50px] rounded-[20px] flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-95 group shadow-sm shrink-0"
               >
                 <i className="fa-solid fa-bars text-gray-400 text-[16px] group-hover:text-blue-500 transition-colors" aria-hidden="true"></i>
               </button>
@@ -611,28 +653,28 @@ function HomeContent() {
                   aria-label="Pretraži oglase"
                   aria-expanded={showSearchHints}
                   aria-autocomplete="list"
-                  placeholder="npr. BMW 320, stan Sarajevo, 10.000 do 20.000..."
+                  placeholder="Pretraži oglase..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSmartSearch(searchQuery); }}
                   onFocus={() => setShowSearchHints(true)}
                   onBlur={() => setTimeout(() => setShowSearchHints(false), 150)}
-                  className="relative z-10 w-full bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] rounded-[20px] py-3.5 pl-12 pr-4 text-[13px] focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 transition-all shadow-sm"
+                  className="relative z-10 w-full bg-white border border-gray-200 rounded-[20px] py-3.5 pl-12 pr-4 text-[13px] focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 placeholder:text-gray-400 transition-all shadow-sm"
                 />
 
                 {/* AI SUGGESTIONS DROPDOWN — shown after Enter */}
                 {showSearchHints && searchQuery && aiSearchSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-[200] bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] rounded-[20px] shadow-xl overflow-hidden animate-fadeIn">
-                    <div className="px-4 pt-3 pb-2 flex items-center gap-2 border-b border-gray-100 dark:border-[var(--c-border)]">
+                  <div className="absolute top-full left-0 right-0 mt-2 z-[200] bg-white border border-gray-200 rounded-[20px] shadow-xl overflow-hidden animate-fadeIn">
+                    <div className="px-4 pt-3 pb-2 flex items-center gap-2 border-b border-gray-100">
                       <i className="fa-solid fa-wand-magic-sparkles text-purple-500 text-[10px]"></i>
-                      <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">AI prijedlozi</p>
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">AI prijedlozi</p>
                     </div>
                     <div className="p-3 flex flex-col gap-1">
                       {aiSearchSuggestions.map((s) => (
                         <button
                           key={s}
                           onMouseDown={() => { handleSearchChange(s); handleSmartSearch(s); }}
-                          className="text-left px-3 py-2 rounded-[12px] text-[12px] font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          className="text-left px-3 py-2 rounded-[12px] text-[12px] font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
                           <i className="fa-solid fa-arrow-trend-up text-[9px] mr-2 text-gray-400"></i>{s}
                         </button>
@@ -643,21 +685,21 @@ function HomeContent() {
 
                 {/* AI SEARCH HINTS DROPDOWN */}
                 {showSearchHints && !searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-[200] bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] rounded-[20px] shadow-xl overflow-hidden animate-fadeIn">
+                  <div className="absolute top-full left-0 right-0 mt-2 z-[200] bg-white border border-gray-200 rounded-[20px] shadow-xl overflow-hidden animate-fadeIn">
                     {/* Header */}
-                    <div className="px-4 pt-4 pb-2 flex items-center gap-2 border-b border-gray-100 dark:border-[var(--c-border)]">
-                      <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 flex items-center justify-center shrink-0">
+                    <div className="px-4 pt-4 pb-2 flex items-center gap-2 border-b border-gray-100">
+                      <div className="w-7 h-7 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
                         <i className="fa-solid fa-wand-magic-sparkles text-purple-500 text-[10px]"></i>
                       </div>
                       <div>
-                        <p className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-wide">NudiNađi AI Pretraga</p>
+                        <p className="text-[11px] font-black text-gray-900 uppercase tracking-wide">NudiNađi AI Pretraga</p>
                         <p className="text-[9px] text-purple-500 font-bold uppercase tracking-widest">Napiši prirodno — AI razumije</p>
                       </div>
                     </div>
 
                     {/* Example chips */}
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-[var(--c-border)]">
-                      <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Probaj ovako →</p>
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Probaj ovako →</p>
                       <div className="flex flex-wrap gap-1.5">
                         {[
                           'BMW 320 Limousine',
@@ -670,7 +712,7 @@ function HomeContent() {
                           <button
                             key={ex}
                             onMouseDown={() => { handleSearchChange(ex); setShowSearchHints(false); }}
-                            className="px-2.5 py-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[var(--c-border)] rounded-full text-[10px] font-semibold text-gray-600 dark:text-gray-400 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 dark:hover:text-blue-400 transition-all"
+                            className="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-full text-[10px] font-semibold text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all"
                           >
                             {ex}
                           </button>
@@ -681,18 +723,18 @@ function HomeContent() {
                     {/* AI capabilities */}
                     <div className="px-4 py-3 space-y-2.5">
                       {[
-                        { icon: 'fa-tags', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10', label: 'Auto-kategorija', desc: '"bmw 320" → automatski na Vozila' },
-                        { icon: 'fa-euro-sign', color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-500/10', label: 'Raspon cijena', desc: '"10.000 do 25.000" ili "ispod 5000"' },
-                        { icon: 'fa-spell-check', color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-500/10', label: 'Greške OK', desc: '"iphone" = "iPhone", "bmv" ≈ "BMW"' },
-                        { icon: 'fa-location-dot', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10', label: 'Lokacija', desc: '"stan Sarajevo" → grad automatski' },
+                        { icon: 'fa-tags', color: 'text-blue-500', bg: 'bg-blue-50', label: 'Auto-kategorija', desc: '"bmw 320" → automatski na Vozila' },
+                        { icon: 'fa-euro-sign', color: 'text-green-500', bg: 'bg-green-50', label: 'Raspon cijena', desc: '"10.000 do 25.000" ili "ispod 5000"' },
+                        { icon: 'fa-spell-check', color: 'text-orange-500', bg: 'bg-orange-50', label: 'Greške OK', desc: '"iphone" = "iPhone", "bmv" ≈ "BMW"' },
+                        { icon: 'fa-location-dot', color: 'text-red-500', bg: 'bg-red-50', label: 'Lokacija', desc: '"stan Sarajevo" → grad automatski' },
                       ].map((feat) => (
                         <div key={feat.label} className="flex items-start gap-2.5">
                           <div className={`w-6 h-6 rounded-lg ${feat.bg} flex items-center justify-center shrink-0 mt-0.5`}>
                             <i className={`fa-solid ${feat.icon} ${feat.color} text-[9px]`}></i>
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-gray-800 dark:text-gray-200">{feat.label}</p>
-                            <p className="text-[9px] text-gray-400 dark:text-gray-500">{feat.desc}</p>
+                            <p className="text-[10px] font-bold text-gray-800">{feat.label}</p>
+                            <p className="text-[9px] text-gray-400">{feat.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -706,7 +748,7 @@ function HomeContent() {
                 aria-label="Otvori informacije o AI pretrazi"
                 aria-expanded={showAiInfo}
                 aria-haspopup="dialog"
-                className="relative z-10 bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] w-[50px] rounded-[20px] flex items-center justify-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors active:scale-95 group shadow-sm shrink-0"
+                className="relative z-10 bg-white border border-gray-200 w-[50px] rounded-[20px] flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-95 group shadow-sm shrink-0"
               >
                 <i className="fa-solid fa-wand-magic-sparkles text-blue-500 text-[14px] group-hover:scale-110 transition-transform" aria-hidden="true"></i>
               </button>
@@ -718,26 +760,26 @@ function HomeContent() {
             <div className="flex flex-col items-center gap-1 mb-1.5">
               {/* Typo correction banner */}
               {aiCorrectedQuery && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 rounded-full max-w-[480px] w-fit">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-200 rounded-full max-w-[480px] w-fit">
                   <i className="fa-solid fa-wand-magic-sparkles text-purple-500 text-[8px]"></i>
                   <span className="text-[9px] text-purple-500">Tražili ste: </span>
                   <span className="text-[9px] font-bold text-purple-400 line-through">{aiCorrectedQuery}</span>
                   <i className="fa-solid fa-arrow-right text-purple-400 text-[7px]"></i>
-                  <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300">{searchQuery}</span>
+                  <span className="text-[9px] font-bold text-purple-700">{searchQuery}</span>
                 </div>
               )}
               {/* Filter chips */}
               <div className="flex flex-wrap gap-1.5 px-1 max-w-[480px] w-full">
                 {aiCategory && (
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-full">
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full">
                     <i className="fa-solid fa-tags text-blue-500 text-[8px]"></i>
-                    <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400">{aiCategory}</span>
+                    <span className="text-[9px] font-bold text-blue-600">{aiCategory}</span>
                   </div>
                 )}
                 {(aiPriceMin || aiPriceMax) && (
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-full">
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full">
                     <i className="fa-solid fa-euro-sign text-green-500 text-[8px]"></i>
-                    <span className="text-[9px] font-bold text-green-600 dark:text-green-400">
+                    <span className="text-[9px] font-bold text-green-600">
                       {aiPriceMin && aiPriceMax ? `${aiPriceMin.toLocaleString()} – ${aiPriceMax.toLocaleString()}` :
                        aiPriceMax ? `do ${aiPriceMax.toLocaleString()}` :
                        `od ${aiPriceMin?.toLocaleString()}`}
@@ -745,9 +787,9 @@ function HomeContent() {
                   </div>
                 )}
                 {aiCondition && (
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-full">
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-orange-50 border border-orange-200 rounded-full">
                     <i className="fa-solid fa-circle-check text-orange-500 text-[8px]"></i>
-                    <span className="text-[9px] font-bold text-orange-600 dark:text-orange-400">{aiCondition}</span>
+                    <span className="text-[9px] font-bold text-orange-600">{aiCondition}</span>
                   </div>
                 )}
                 <button
@@ -761,7 +803,7 @@ function HomeContent() {
                     setFilters(prev => ({ ...prev, condition: 'all' }));
                     handleCategoryChange('Sve');
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-full hover:bg-red-50 hover:border-red-200 transition-colors"
                 >
                   <i className="fa-solid fa-xmark text-gray-400 text-[8px]"></i>
                   <span className="text-[9px] text-gray-400">Reset AI</span>
@@ -774,7 +816,7 @@ function HomeContent() {
           <div className="flex justify-center mb-2">
             <button
               onClick={() => setShowLocationPicker(true)}
-              className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] rounded-full text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+              className="flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
             >
               <i className="fa-solid fa-location-dot text-blue-500 text-[10px]"></i>
               <span>{selectedLocation ? selectedLocation.name : 'Sve Lokacije'}</span>
@@ -783,7 +825,7 @@ function HomeContent() {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setSelectedLocation(null); if (typeof window !== 'undefined') localStorage.removeItem('nudinadi_location'); }}
                   aria-label="Ukloni odabranu lokaciju"
-                  className="ml-1 w-4 h-4 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/20"
+                  className="ml-1 w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200"
                 >
                   <i className="fa-solid fa-xmark text-[7px]" aria-hidden="true"></i>
                 </button>
@@ -802,8 +844,8 @@ function HomeContent() {
                   onClick={() => handleCategoryChange('Sve')}
                   className={`min-w-[75px] h-[90px] rounded-[16px] border relative overflow-hidden group transition-all duration-300 shrink-0 shadow-sm ${
                     activeCategory === 'Sve'
-                      ? 'border-gray-900 dark:border-white ring-2 ring-gray-900/20 dark:ring-white/20 scale-105 z-10 shadow-md'
-                      : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:shadow-md'
+                      ? 'border-gray-900 ring-2 ring-gray-900/20 scale-105 z-10 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -832,7 +874,7 @@ function HomeContent() {
               onClick={() => setShowSecondaryCats(!showSecondaryCats)}
               aria-expanded={showSecondaryCats}
               aria-label={showSecondaryCats ? 'Sakrij dodatne kategorije' : 'Prikaži više kategorija'}
-              className="flex items-center gap-2 px-6 py-1.5 bg-white dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] rounded-full text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+              className="flex items-center gap-2 px-6 py-1.5 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
             >
               <span>{showSecondaryCats ? 'Manje' : 'Više kategorija'}</span>
               <i className={`fa-solid fa-chevron-down transition-transform ${showSecondaryCats ? 'rotate-180' : ''}`} aria-hidden="true"></i>
@@ -841,11 +883,13 @@ function HomeContent() {
 
           {/* SECONDARY CATEGORIES */}
           {showSecondaryCats && (
-            <div className="animate-fadeIn border-t border-gray-100 dark:border-white/5 pt-2 pb-2">
-              <div className="flex gap-1 px-1">
-                {secondaryCategories.map((cat) => (
-                  <CategoryButton key={cat.id} cat={cat} isActive={activeCategory === cat.name} onClick={() => handleCategoryChange(cat.name)} flexible />
-                ))}
+            <div className="animate-fadeIn border-t border-gray-100 pt-2 pb-2">
+              <div className="overflow-x-auto no-scrollbar touch-pan-x">
+                <div className="flex gap-2 px-1 min-w-max">
+                  {secondaryCategories.map((cat) => (
+                    <CategoryButton key={cat.id} cat={cat} isActive={activeCategory === cat.name} onClick={() => handleCategoryChange(cat.name)} flexible />
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -863,25 +907,25 @@ function HomeContent() {
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowAllCatsPopup(false); setSelectedSubGroup(null); }} onKeyDown={(e) => { if (e.key === 'Escape') { setShowAllCatsPopup(false); setSelectedSubGroup(null); }}} role="presentation"></div>
 
               {/* Modal Container */}
-              <div className="relative w-full h-full md:h-[85vh] md:max-w-5xl bg-white dark:bg-[var(--c-card)] md:rounded-[24px] md:border md:border-gray-200 dark:md:border-[var(--c-border)] overflow-hidden flex flex-col animate-[fadeIn_0.2s_ease-out] shadow-2xl">
+              <div className="relative w-full h-full md:h-[85vh] md:max-w-5xl bg-white md:rounded-[24px] md:border md:border-gray-200 overflow-hidden flex flex-col animate-[fadeIn_0.2s_ease-out] shadow-2xl">
 
                 {/* Header */}
-                <div className="shrink-0 px-5 py-4 border-b border-gray-100 dark:border-[var(--c-border)] flex items-center justify-between bg-white dark:bg-[var(--c-card)]">
+                <div className="shrink-0 px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
                   <div className="flex items-center gap-3">
                     {showThirdLevel && (
                       <button
                         onClick={() => setSelectedSubGroup(null)}
                         aria-label="Nazad na potkategorije"
-                        className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
                       >
                         <i className="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
                       </button>
                     )}
                     <div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white leading-none">
+                      <h3 className="text-lg font-black text-gray-900 leading-none">
                         {showThirdLevel ? selectedSubGroup : 'Kategorije'}
                       </h3>
-                      <p className="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-0.5">
                         {showThirdLevel
                           ? `${selectedCategory.name} › ${selectedSubGroup}`
                           : `${CATEGORIES.length} kategorija`}
@@ -891,24 +935,24 @@ function HomeContent() {
                   <button
                     onClick={() => { setShowAllCatsPopup(false); setSelectedSubGroup(null); }}
                     aria-label="Zatvori kategorije"
-                    className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                   >
                     <i className="fa-solid fa-xmark"></i>
                   </button>
                 </div>
 
                 {/* Split Content */}
-                <div className="flex flex-1 overflow-hidden border-t border-gray-100 dark:border-[var(--c-border)]">
+                <div className="flex flex-1 overflow-hidden border-t border-gray-100">
 
                   {/* LEFT SIDEBAR — hidden on mobile when 3rd level is shown */}
-                  <div className={`${showThirdLevel ? 'hidden md:flex' : 'flex'} flex-col w-[85px] md:w-[260px] bg-gray-50 dark:bg-[var(--c-bg)] border-r border-gray-100 dark:border-[var(--c-border)] overflow-y-auto no-scrollbar pb-24`}>
+                  <div className={`${showThirdLevel ? 'hidden md:flex' : 'flex'} flex-col w-[85px] md:w-[260px] bg-gray-50 border-r border-gray-100 overflow-y-auto no-scrollbar pb-24`}>
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat.id}
                         onClick={() => { setSelectedCatId(cat.id); setSelectedSubGroup(null); }}
-                        className={`w-full p-4 md:px-5 md:py-4 flex flex-col md:flex-row items-center md:gap-3 border-b border-gray-100 dark:border-[var(--c-border)] transition-all relative group ${
+                        className={`w-full p-4 md:px-5 md:py-4 flex flex-col md:flex-row items-center md:gap-3 border-b border-gray-100 transition-all relative group ${
                           selectedCatId === cat.id
-                            ? 'bg-white dark:bg-[var(--c-card)] text-blue-600 shadow-sm'
+                            ? 'bg-white text-blue-600 shadow-sm'
                             : 'text-[var(--c-text3)] hover:bg-[var(--c-hover)] hover:text-[var(--c-text2)]'
                         }`}
                       >
@@ -928,8 +972,8 @@ function HomeContent() {
 
                   {/* MIDDLE CONTENT — Sub-category groups */}
                   {!showThirdLevel && (
-                    <div className="flex-1 bg-white dark:bg-[var(--c-card)] overflow-y-auto p-4 md:p-6 pb-24 relative">
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-full blur-[80px] pointer-events-none dark:bg-blue-500/5"></div>
+                    <div className="flex-1 bg-white overflow-y-auto p-4 md:p-6 pb-24 relative">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-full blur-[80px] pointer-events-none"></div>
 
                       {/* Selected Category Header */}
                       <div className="mb-6 flex items-center gap-3 relative z-10">
@@ -937,7 +981,7 @@ function HomeContent() {
                           <i className={`fa-solid ${selectedCategory.icon} text-lg`}></i>
                         </div>
                         <div>
-                          <h1 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-0.5">{selectedCategory.name}</h1>
+                          <h1 className="text-xl font-black text-gray-900 uppercase tracking-tight leading-none mb-0.5">{selectedCategory.name}</h1>
                           <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{selectedCategory.subCategories.length} Potkategorija</p>
                         </div>
                       </div>
@@ -967,12 +1011,12 @@ function HomeContent() {
                                 setSelectedSubGroup(null);
                               }
                             }}
-                            className="text-left bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-[var(--c-border)] p-3.5 rounded-[12px] flex justify-between items-center hover:bg-white dark:hover:bg-white/10 hover:border-gray-200 hover:shadow-sm transition-all group active:scale-[0.99]"
+                            className="text-left bg-gray-50 border border-gray-100 p-3.5 rounded-[12px] flex justify-between items-center hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all group active:scale-[0.99]"
                           >
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-[12px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{sub.name}</span>
+                              <span className="text-[12px] font-bold text-gray-700 group-hover:text-gray-900 transition-colors">{sub.name}</span>
                               {sub.items?.length && (
-                                <span className="text-[9px] text-gray-400 dark:text-gray-500">{sub.items.length} stavki</span>
+                                <span className="text-[9px] text-gray-400">{sub.items.length} stavki</span>
                               )}
                             </div>
                             <i className={`fa-solid ${sub.items?.length ? 'fa-chevron-right' : 'fa-arrow-right'} text-[10px] text-gray-300 group-hover:text-blue-500 transition-colors`}></i>
@@ -984,18 +1028,18 @@ function HomeContent() {
 
                   {/* THIRD LEVEL — Detailed items within sub-group */}
                   {showThirdLevel && selectedSubGroupData && (
-                    <div className="flex-1 bg-white dark:bg-[var(--c-card)] overflow-y-auto p-4 md:p-6 pb-24 relative animate-[fadeIn_0.2s_ease-out]">
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/50 rounded-full blur-[80px] pointer-events-none dark:bg-indigo-500/5"></div>
+                    <div className="flex-1 bg-white overflow-y-auto p-4 md:p-6 pb-24 relative animate-[fadeIn_0.2s_ease-out]">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/50 rounded-full blur-[80px] pointer-events-none"></div>
 
                       {/* Sub-group header */}
                       <div className="mb-5 relative z-10">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{selectedCategory.name}</span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{selectedCategory.name}</span>
                           <i className="fa-solid fa-chevron-right text-[8px] text-gray-300"></i>
                           <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest">{selectedSubGroup}</span>
                         </div>
-                        <h2 className="text-xl font-black text-gray-900 dark:text-white">{selectedSubGroup}</h2>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{selectedSubGroupData.items!.length} kategorija</p>
+                        <h2 className="text-xl font-black text-gray-900">{selectedSubGroup}</h2>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{selectedSubGroupData.items!.length} kategorija</p>
                       </div>
 
                       {/* "Show all in sub-group" button */}
@@ -1015,10 +1059,10 @@ function HomeContent() {
                           <button
                             key={idx}
                             onClick={() => { handleCategoryChange(selectedCategory.name); setShowAllCatsPopup(false); setSelectedSubGroup(null); }}
-                            className="text-left bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-[var(--c-border)] px-4 py-3 rounded-[10px] flex justify-between items-center hover:bg-white dark:hover:bg-white/10 hover:border-blue-200 dark:hover:border-blue-500/30 hover:shadow-sm transition-all group active:scale-[0.99]"
+                            className="text-left bg-gray-50 border border-gray-100 px-4 py-3 rounded-[10px] flex justify-between items-center hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all group active:scale-[0.99]"
                           >
-                            <span className="text-[12px] font-semibold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{item}</span>
-                            <i className="fa-solid fa-arrow-right text-[9px] text-gray-200 dark:text-gray-600 group-hover:text-blue-500 transition-colors"></i>
+                            <span className="text-[12px] font-semibold text-gray-600 group-hover:text-gray-900 transition-colors">{item}</span>
+                            <i className="fa-solid fa-arrow-right text-[9px] text-gray-200 group-hover:text-blue-500 transition-colors"></i>
                           </button>
                         ))}
                       </div>
@@ -1035,7 +1079,7 @@ function HomeContent() {
           <div className="pt-6 pl-1 md:pl-0">
             <div className="flex justify-between items-end mb-3 pr-2">
               <div>
-                <h2 className="text-[16px] font-black text-gray-900 dark:text-white leading-none tracking-tight">Vozila</h2>
+                <h2 className="text-[16px] font-black text-gray-900 leading-none tracking-tight">Vozila</h2>
                 <p className="text-[10px] text-gray-400 mt-1 font-medium">Izdvojeno iz ponude</p>
               </div>
               <button
@@ -1059,12 +1103,14 @@ function HomeContent() {
         <div className="pt-2">
           <div className="flex justify-between items-end mb-4 px-1">
             <div>
-              <h2 className="text-[16px] font-black text-gray-900 dark:text-white leading-none tracking-tight">Istraži</h2>
-              <p className="text-[10px] text-gray-400 mt-1 font-medium">Najnovije iz ponude</p>
+              <h2 className="text-[16px] font-black text-gray-900 leading-none tracking-tight">Istraži</h2>
+              <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                {totalCount > 0 ? `${displayedProducts.length} od ${totalCount} oglasa` : 'Najnovije iz ponude'}
+              </p>
             </div>
             <button
               onClick={() => setShowFilterModal(true)}
-              className="relative text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 flex items-center gap-1.5"
+              className="relative text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 px-3 py-1 rounded-full border border-blue-100 flex items-center gap-1.5"
             >
               <i className="fa-solid fa-sliders text-[9px]"></i>
               Filteri
@@ -1079,7 +1125,7 @@ function HomeContent() {
           {isLoadingProducts ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 md:gap-4">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="bg-gray-100 dark:bg-[var(--c-card)] rounded-[16px] h-[190px] animate-pulse" />
+                <div key={i} className="bg-gray-100 rounded-[16px] h-[190px] animate-pulse" />
               ))}
             </div>
           ) : (
@@ -1092,17 +1138,35 @@ function HomeContent() {
             </div>
           )}
 
+          {/* Infinite Scroll Trigger */}
+          {!isLoadingProducts && hasMore && displayedProducts.length > 0 && (
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isLoadingMore && (
+                <div className="flex items-center gap-2 text-[var(--c-text3)]">
+                  <i className="fa-solid fa-spinner animate-spin text-blue-500"></i>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Učitavanje...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isLoadingProducts && !hasMore && displayedProducts.length > PRODUCTS_PER_PAGE && (
+            <div className="flex justify-center py-6">
+              <p className="text-[10px] text-[var(--c-text3)] font-bold uppercase tracking-widest">Prikazani svi oglasi</p>
+            </div>
+          )}
+
           {!isLoadingProducts && displayedProducts.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-[20px] bg-gray-50 dark:bg-[var(--c-card)] border border-gray-200 dark:border-[var(--c-border)] flex items-center justify-center mb-4">
-                <i className="fa-solid fa-ghost text-2xl text-gray-300 dark:text-gray-600"></i>
+              <div className="w-16 h-16 rounded-[20px] bg-gray-50 border border-gray-200 flex items-center justify-center mb-4">
+                <i className="fa-solid fa-ghost text-2xl text-gray-300"></i>
               </div>
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Nema rezultata</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Nema rezultata</h3>
               <p className="text-[10px] text-gray-400 max-w-[200px]">Pokušaj promijeniti filtere ili kategoriju.</p>
               {activeFilterCount > 0 && (
                 <button
                   onClick={() => setFilters(DEFAULT_FILTERS)}
-                  className="mt-4 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-full text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                  className="mt-4 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-[10px] font-bold text-blue-600 hover:bg-blue-100 transition-colors"
                 >
                   <i className="fa-solid fa-rotate-left mr-1.5"></i> Resetuj filtere
                 </button>

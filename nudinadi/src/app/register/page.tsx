@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, lastError } = useAuth();
+  const { register, loginWithOAuth, lastError } = useAuth();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
       email: '',
@@ -36,7 +36,7 @@ export default function RegisterPage() {
       setIsLoading(true);
       setErrors({});
       try {
-        const username = formData.email.split('@')[0];
+        const username = formData.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 30);
         const result = await register(formData.email, formData.password, username);
 
         if (result === 'success') {
@@ -111,7 +111,8 @@ export default function RegisterPage() {
                             inputMode="email"
                             value={formData.email}
                             onChange={e => { setFormData({...formData, email: e.target.value}); if (errors.email) setErrors({...errors, email: undefined}); }}
-                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
+                            placeholder="tvoj@email.com"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                   </div>
@@ -131,7 +132,8 @@ export default function RegisterPage() {
                             autoComplete="new-password"
                             value={formData.password}
                             onChange={e => { setFormData({...formData, password: e.target.value}); if (errors.password) setErrors({...errors, password: undefined}); }}
-                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
+                            placeholder="••••••••"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                   </div>
@@ -151,7 +153,8 @@ export default function RegisterPage() {
                             autoComplete="new-password"
                             value={formData.confirmPassword}
                             onChange={e => { setFormData({...formData, confirmPassword: e.target.value}); if (errors.confirmPassword) setErrors({...errors, confirmPassword: undefined}); }}
-                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
+                            placeholder="••••••••"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                   </div>
@@ -187,6 +190,33 @@ export default function RegisterPage() {
             <button type="submit" disabled={isLoading} className="w-full py-4 rounded-[20px] blue-gradient text-white font-black text-xs uppercase tracking-[2px] shadow-xl shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
                 {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : <><i className="fa-solid fa-user-plus"></i> Registriraj se</>}
             </button>
+
+            {/* OAuth Divider */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 h-px bg-[var(--c-border2)]"></div>
+              <span className="text-[9px] font-bold text-[var(--c-text3)] uppercase tracking-widest">ili</span>
+              <div className="flex-1 h-px bg-[var(--c-border2)]"></div>
+            </div>
+
+            {/* OAuth Buttons */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => loginWithOAuth('google')}
+                className="flex-1 py-3.5 rounded-[18px] bg-[var(--c-card)] border border-[var(--c-border2)] text-[var(--c-text)] font-bold text-[11px] hover:bg-[var(--c-hover)] active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <i className="fa-brands fa-google text-sm"></i>
+                Google
+              </button>
+              <button
+                type="button"
+                onClick={() => loginWithOAuth('facebook')}
+                className="flex-1 py-3.5 rounded-[18px] bg-[#1877F2] border border-[#1877F2] text-white font-bold text-[11px] hover:bg-[#166FE5] active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <i className="fa-brands fa-facebook-f text-sm"></i>
+                Facebook
+              </button>
+            </div>
 
             <div className="text-center mt-4">
                  <p className="text-[10px] text-[var(--c-text3)] font-bold uppercase tracking-widest mb-3">Već imaš račun?</p>

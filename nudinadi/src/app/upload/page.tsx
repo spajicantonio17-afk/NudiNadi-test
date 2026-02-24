@@ -1142,14 +1142,14 @@ function UploadPageInner() {
   if (step === 'selection') {
     return (
       <MainLayout title="Kategorija" showSigurnost={false} headerRight={
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowAiInfo(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-[8px] text-[11px] font-bold text-blue-500 hover:text-blue-600 bg-blue-500/5 hover:bg-blue-50 border border-blue-500/20 hover:border-blue-300 transition-all group">
-            <div className="w-6 h-6 rounded-[5px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-              <i className="fa-solid fa-camera-retro text-[10px] text-blue-500"></i>
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <button onClick={() => setShowAiInfo(true)} className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-[8px] text-[10px] md:text-[11px] font-bold text-blue-500 hover:text-blue-600 bg-blue-500/5 hover:bg-blue-50 border border-blue-500/20 hover:border-blue-300 transition-all group">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-[5px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+              <i className="fa-solid fa-camera-retro text-[9px] md:text-[10px] text-blue-500"></i>
             </div>
-            AI Foto
+            <span className="hidden sm:inline">AI Foto</span>
           </button>
-          <button onClick={() => router.push('/')} className="w-10 h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors"><i className="fa-solid fa-xmark"></i></button>
+          <button onClick={() => router.push('/')} className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors"><i className="fa-solid fa-xmark text-xs md:text-sm"></i></button>
         </div>
       }>
         {/* AI Image Recognition Info Popup */}
@@ -1327,7 +1327,7 @@ function UploadPageInner() {
           </div>
 
           {/* Link Import Shortcut */}
-          <Link href="/link-import" className="block w-full relative group overflow-hidden bg-orange-50 dark:bg-orange-500/5 border border-orange-200 dark:border-orange-500/20 rounded-[24px] p-5 flex items-center justify-between active:scale-[0.98] transition-all hover:bg-orange-100 dark:hover:bg-orange-500/10">
+          <Link href="/link-import" className="block w-full relative group overflow-hidden bg-orange-50 border border-orange-200 rounded-[24px] p-5 flex items-center justify-between active:scale-[0.98] transition-all hover:bg-orange-100">
               <div className="flex items-center gap-4 z-10">
                 <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
                   <i className="fa-solid fa-file-import"></i>

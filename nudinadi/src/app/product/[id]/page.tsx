@@ -12,8 +12,7 @@ import { getProductQuestions, askQuestion, answerQuestion, type QuestionWithUser
 import { createReview, hasUserReviewed } from '@/services/reviewService';
 import { useAuth } from '@/lib/auth';
 import type { ProductFull } from '@/lib/database.types';
-
-const BAM_RATE = 1.95583;
+import { BAM_RATE } from '@/lib/constants';
 
 function formatTimeLabel(createdAt: string): string {
   const diff = Date.now() - new Date(createdAt).getTime();
@@ -50,6 +49,12 @@ export default function ProductDetailPage() {
   const [questions, setQuestions] = useState<QuestionWithUser[]>([]);
   const [answeringId, setAnsweringId] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState('');
+
+  // Report state
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
 
   // Review state
   const [reviewRating, setReviewRating] = useState(0);
@@ -153,6 +158,32 @@ export default function ProductDetailPage() {
       router.push('/');
     } catch {
       showToast('Greška pri brisanju', 'error');
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason || reportSubmitting) return;
+    setReportSubmitting(true);
+    try {
+      // Report via admin API
+      await fetch('/api/admin/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: params.id,
+          reporter_id: user?.id || null,
+          reason: reportReason,
+          details: reportDetails.trim() || null,
+        }),
+      });
+      showToast('Prijava poslana. Hvala!');
+      setShowReportModal(false);
+      setReportReason('');
+      setReportDetails('');
+    } catch {
+      showToast('Greška pri slanju prijave', 'error');
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -262,19 +293,105 @@ export default function ProductDetailPage() {
         </div>
       )}
 
+      {/* REPORT MODAL */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Prijavi oglas">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowReportModal(false)}></div>
+          <div className="relative bg-[var(--c-card)] border border-[var(--c-border2)] rounded-sm w-full max-w-md shadow-xl animate-[fadeIn_0.15s_ease-out]">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--c-border2)]">
+              <h3 className="text-sm font-bold text-[var(--c-text)] uppercase tracking-widest flex items-center gap-2">
+                <i className="fa-solid fa-flag text-red-500"></i> Prijavi Oglas
+              </h3>
+              <button onClick={() => setShowReportModal(false)} aria-label="Zatvori" className="w-8 h-8 flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold text-[var(--c-text3)] uppercase tracking-widest mb-3">Razlog prijave</p>
+                <div className="space-y-2">
+                  {[
+                    { value: 'fake', label: 'Lažni oglas' },
+                    { value: 'inappropriate', label: 'Neprimjeren sadržaj' },
+                    { value: 'scam', label: 'Prevara / Prijevara' },
+                    { value: 'duplicate', label: 'Duplicirani oglas' },
+                    { value: 'wrong_info', label: 'Netočni podaci' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setReportReason(opt.value)}
+                      className={`w-full text-left px-4 py-3 text-sm border rounded-sm transition-colors ${
+                        reportReason === opt.value
+                          ? 'border-red-500 bg-red-50 text-red-700 font-bold'
+                          : 'border-[var(--c-border2)] text-[var(--c-text2)] hover:bg-[var(--c-hover)]'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-[var(--c-text3)] uppercase tracking-widest mb-2 block">Dodatni detalji (opcionalno)</label>
+                <textarea
+                  value={reportDetails}
+                  onChange={e => setReportDetails(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Opiši problem detaljnije..."
+                  className="w-full bg-[var(--c-bg)] border border-[var(--c-border2)] text-sm text-[var(--c-text)] px-4 py-3 outline-none focus:bg-[var(--c-card-alt)] transition-colors placeholder:text-[var(--c-placeholder)] rounded-sm resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 p-5 border-t border-[var(--c-border2)]">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 h-11 border border-[var(--c-border2)] text-[var(--c-text2)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--c-hover)] transition-colors rounded-sm"
+              >
+                Odustani
+              </button>
+              <button
+                onClick={handleReport}
+                disabled={!reportReason || reportSubmitting}
+                className="flex-1 h-11 bg-red-500 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-colors rounded-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {reportSubmitting ? (
+                  <><i className="fa-solid fa-spinner animate-spin"></i> Slanje...</>
+                ) : (
+                  <><i className="fa-solid fa-flag"></i> Pošalji Prijavu</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto pt-4 md:pt-8 pb-24">
         <div className="flex items-center justify-between mb-6 px-4 md:px-0">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors">
                 <i className="fa-solid fa-arrow-left"></i><span>Nazad</span>
             </button>
-            <button
-              onClick={handleShare}
-              aria-label="Podijeli oglas"
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors"
-            >
-              <i className="fa-solid fa-share-nodes"></i>
-              <span className="hidden sm:inline">Podijeli</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowReportModal(true)}
+                aria-label="Prijavi oglas"
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--c-text3)] hover:text-red-500 transition-colors"
+              >
+                <i className="fa-solid fa-flag"></i>
+                <span className="hidden sm:inline">Prijavi</span>
+              </button>
+              <button
+                onClick={handleShare}
+                aria-label="Podijeli oglas"
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--c-text3)] hover:text-[var(--c-text)] transition-colors"
+              >
+                <i className="fa-solid fa-share-nodes"></i>
+                <span className="hidden sm:inline">Podijeli</span>
+              </button>
+            </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 bg-[var(--c-card-alt)] border-y border-[var(--c-border2)] lg:border lg:rounded-sm overflow-hidden">

@@ -1,5 +1,8 @@
 import { Product, User, Category } from './types';
 
+/** Fixed EUR → BAM (Convertible Mark) exchange rate */
+export const BAM_RATE = 1.95583;
+
 export const CATEGORIES: Category[] = [
   // ─── 1. VOZILA ────────────────────────────────────────────
   {

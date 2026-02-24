@@ -269,7 +269,7 @@ function ProfileContent() {
       await deleteProduct(draftId);
       setUserProducts(prev => prev.filter(p => p.id !== draftId));
     } catch (err) {
-      console.error('Draft löschen fehlgeschlagen:', err);
+      console.error('Draft deletion failed:', err);
     } finally {
       setDeletingDraftId(null);
     }
@@ -576,116 +576,104 @@ function ProfileContent() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/5 blur-[40px] rounded-full"></div>
 
-            <div className="relative z-10 flex items-center gap-5">
-                {/* Avatar Area */}
-                <div className="relative shrink-0 self-start mt-1">
-                    <div className="w-16 h-16 rounded-[18px] bg-gradient-to-br from-[var(--c-avatar-border-from)] to-[var(--c-avatar-border-to)] p-0.5 shadow-2xl shadow-blue-500/10">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={displayAvatar} alt="Avatar" className="w-full h-full object-cover rounded-[16px]" />
+            <div className="relative z-10">
+                {/* Top row: Avatar + Name + Level */}
+                <div className="flex items-start gap-4">
+                    {/* Avatar Area */}
+                    <div className="relative shrink-0 mt-1">
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-[16px] md:rounded-[18px] bg-gradient-to-br from-[var(--c-avatar-border-from)] to-[var(--c-avatar-border-to)] p-0.5 shadow-2xl shadow-blue-500/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={displayAvatar} alt="Avatar" className="w-full h-full object-cover rounded-[14px] md:rounded-[16px]" />
+                        </div>
+                    </div>
+
+                    {/* Name + Location + Badges */}
+                    <div className="flex-1 min-w-0 pt-0.5">
+                        <h2 className="text-base md:text-lg font-black text-[var(--c-text)] tracking-tight leading-none truncate">{displayName}</h2>
+                        <div className="flex items-center gap-1.5 text-[var(--c-text2)] mt-1.5">
+                            <i className="fa-solid fa-location-dot text-[10px] text-blue-400"></i>
+                            <span className="text-[11px] font-medium truncate">{displayLocation}</span>
+                        </div>
+
+                        {/* Verification Badges */}
+                        <div className="flex flex-wrap gap-1.5 mt-2.5">
+                            {isAuthenticated ? (
+                              <>
+                                <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <i className="fa-solid fa-check-circle text-[9px]"></i> Verificiran
+                                </span>
+                                {userLevel >= 5 && (
+                                  <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                      <i className="fa-solid fa-star text-[9px]"></i> Premium
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <button onClick={() => router.push('/login')} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-blue-500/20 transition-colors">
+                                  <i className="fa-solid fa-arrow-right-to-bracket text-[9px]"></i> Prijavi se
+                              </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Level — compact on mobile, full on desktop */}
+                    <div className="shrink-0 flex flex-col items-end">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[9px] md:text-[10px] font-black text-[var(--c-text3)] uppercase tracking-widest">Level</span>
+                            <span className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-500 italic drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{userLevel}</span>
+                        </div>
+                        <div className="w-24 md:w-44 mb-1.5 relative group">
+                            <div className="hidden md:flex justify-between text-[9px] font-bold text-[var(--c-text2)] mb-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                                <span className="text-blue-400">{xpProgress.current} XP</span>
+                                <span>{xpProgress.needed} XP</span>
+                            </div>
+                            <div className="h-2 md:h-2.5 bg-[var(--c-xp-bar-bg)] rounded-full overflow-hidden border border-[var(--c-border2)] p-[1px] shadow-inner">
+                                <div className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.5)] relative overflow-hidden" style={{ width: `${xpProgress.progress}%` }}>
+                                    <div className="absolute inset-0 bg-white/30 skew-x-[-20deg] animate-[shimmer_2s_infinite]"></div>
+                                </div>
+                            </div>
+                            <p className="md:hidden text-[8px] text-[var(--c-text3)] text-right mt-0.5">{xpProgress.current}/{xpProgress.needed} XP</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Info Area */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div className="pt-0.5 flex flex-col items-start">
-                            <h2 className="text-lg font-black text-[var(--c-text)] tracking-tight leading-none">{displayName}</h2>
-                            <div className="flex items-center gap-1.5 text-[var(--c-text2)] mt-1.5">
-                                <i className="fa-solid fa-location-dot text-[10px] text-blue-400"></i>
-                                <span className="text-[11px] font-medium">{displayLocation}</span>
-                            </div>
-
-                            {/* Verification Badges */}
-                            <div className="flex flex-wrap gap-2 mt-3">
-                                {isAuthenticated ? (
-                                  <>
-                                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                        <i className="fa-solid fa-check-circle text-[9px]"></i> Verificiran
-                                    </span>
-                                    {userLevel >= 5 && (
-                                      <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                          <i className="fa-solid fa-star text-[9px]"></i> Premium
-                                      </span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <button onClick={() => router.push('/login')} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-[6px] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-blue-500/20 transition-colors">
-                                      <i className="fa-solid fa-arrow-right-to-bracket text-[9px]"></i> Prijavi se
-                                  </button>
-                                )}
-                            </div>
-
-                            {/* Action Buttons Row */}
-                            <div className="flex items-center gap-2 mt-3">
-                                {/* Edit Profile Button */}
-                                <button
-                                    onClick={openEdit}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-full hover:bg-blue-500/20 hover:border-blue-500/50 transition-all active:scale-95 group shadow-lg"
-                                >
-                                    <i className="fa-solid fa-pen text-[10px] text-blue-500"></i>
-                                    <span className="text-[9px] font-bold text-blue-500 uppercase tracking-wide">Uredi</span>
-                                </button>
-
-                                {/* Settings Button */}
-                                <button
-                                    onClick={() => router.push('/menu')}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)] transition-all active:scale-95 group shadow-lg"
-                                >
-                                    <i className="fa-solid fa-gear text-[10px] text-[var(--c-text2)] group-hover:text-[var(--c-text)] group-hover:rotate-90 transition-transform duration-500"></i>
-                                    <span className="text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Postavke</span>
-                                </button>
-
-                                {/* Share Button */}
-                                <button
-                                    onClick={handleShareProfile}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-blue-500/40 hover:bg-blue-500/5 transition-all active:scale-95 group shadow-lg"
-                                >
-                                    <i className="fa-solid fa-share-nodes text-[10px] text-[var(--c-text2)] group-hover:text-blue-500 transition-colors"></i>
-                                    <span className="text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Podijeli</span>
-                                </button>
-
-                                {/* Logout Button */}
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-red-500/40 hover:bg-red-500/5 transition-all active:scale-95 group shadow-lg"
-                                >
-                                    <i className="fa-solid fa-arrow-right-from-bracket text-[10px] text-[var(--c-text2)] group-hover:text-red-500 transition-colors"></i>
-                                    <span className="text-[9px] font-bold text-[var(--c-text2)] group-hover:text-red-500 uppercase tracking-wide">Odjava</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* XP/Reputation - Right Side */}
-                         <div className="flex flex-col items-end pl-2">
-                            {/* Level Number */}
-                            <div className="flex items-center gap-2 mb-1.5">
-                                <span className="text-[10px] font-black text-[var(--c-text3)] uppercase tracking-widest">Level</span>
-                                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-500 italic drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{userLevel}</span>
-                            </div>
-
-                            {/* Larger Bar */}
-                            <div className="w-36 md:w-44 mb-2 relative group">
-                                <div className="flex justify-between text-[9px] font-bold text-[var(--c-text2)] mb-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                                    <span className="text-blue-400">{xpProgress.current} XP</span>
-                                    <span>{xpProgress.needed} XP</span>
-                                </div>
-                                <div className="h-2.5 bg-[var(--c-xp-bar-bg)] rounded-full overflow-hidden border border-[var(--c-border2)] p-[1px] shadow-inner">
-                                    <div className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.5)] relative overflow-hidden" style={{ width: `${xpProgress.progress}%` }}>
-                                        <div className="absolute inset-0 bg-white/30 skew-x-[-20deg] animate-[shimmer_2s_infinite]"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Level System Button */}
-                            <button
-                                onClick={() => router.push('/profile/level')}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-blue-500/50 hover:bg-blue-500/5 transition-all active:scale-95 group shadow-lg"
-                            >
-                                <i className="fa-solid fa-trophy text-[10px] text-yellow-500 group-hover:scale-110 transition-transform"></i>
-                                <span className="text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Level Sistem</span>
-                            </button>
-                        </div>
-                    </div>
+                {/* Action Buttons Row — wraps on mobile */}
+                <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-3">
+                    <button
+                        onClick={openEdit}
+                        className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-full hover:bg-blue-500/20 hover:border-blue-500/50 transition-all active:scale-95 group shadow-lg"
+                    >
+                        <i className="fa-solid fa-pen text-[9px] md:text-[10px] text-blue-500"></i>
+                        <span className="text-[8px] md:text-[9px] font-bold text-blue-500 uppercase tracking-wide">Uredi</span>
+                    </button>
+                    <button
+                        onClick={() => router.push('/menu')}
+                        className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:bg-[var(--c-hover)] transition-all active:scale-95 group shadow-lg"
+                    >
+                        <i className="fa-solid fa-gear text-[9px] md:text-[10px] text-[var(--c-text2)] group-hover:text-[var(--c-text)] group-hover:rotate-90 transition-transform duration-500"></i>
+                        <span className="text-[8px] md:text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Postavke</span>
+                    </button>
+                    <button
+                        onClick={handleShareProfile}
+                        className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-blue-500/40 hover:bg-blue-500/5 transition-all active:scale-95 group shadow-lg"
+                    >
+                        <i className="fa-solid fa-share-nodes text-[9px] md:text-[10px] text-[var(--c-text2)] group-hover:text-blue-500 transition-colors"></i>
+                        <span className="text-[8px] md:text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Podijeli</span>
+                    </button>
+                    <button
+                        onClick={() => router.push('/profile/level')}
+                        className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-blue-500/50 hover:bg-blue-500/5 transition-all active:scale-95 group shadow-lg"
+                    >
+                        <i className="fa-solid fa-trophy text-[9px] md:text-[10px] text-yellow-500 group-hover:scale-110 transition-transform"></i>
+                        <span className="text-[8px] md:text-[9px] font-bold text-[var(--c-text2)] group-hover:text-[var(--c-text)] uppercase tracking-wide">Level</span>
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-[var(--c-bg)] border border-[var(--c-border2)] rounded-full hover:border-red-500/40 hover:bg-red-500/5 transition-all active:scale-95 group shadow-lg"
+                    >
+                        <i className="fa-solid fa-arrow-right-from-bracket text-[9px] md:text-[10px] text-[var(--c-text2)] group-hover:text-red-500 transition-colors"></i>
+                        <span className="text-[8px] md:text-[9px] font-bold text-[var(--c-text2)] group-hover:text-red-500 uppercase tracking-wide">Odjava</span>
+                    </button>
                 </div>
             </div>
 

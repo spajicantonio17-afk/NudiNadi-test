@@ -10,8 +10,7 @@ import { useI18n } from '@/lib/i18n';
 import { getProductById } from '@/services/productService';
 import { getOrCreateConversation } from '@/services/messageService';
 import type { ProductFull } from '@/lib/database.types';
-
-const BAM_RATE = 1.95583;
+import { BAM_RATE } from '@/lib/constants';
 
 export default function CartPage() {
   const router = useRouter();
@@ -36,7 +35,7 @@ export default function CartPage() {
         setProducts(loaded);
       })
       .finally(() => setLoading(false));
-  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [items]);
 
   const totalPrice = products.reduce((sum, p) => sum + Number(p.price), 0);
   const totalKM = Math.round(totalPrice * BAM_RATE);

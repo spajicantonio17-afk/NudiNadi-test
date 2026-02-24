@@ -1,0 +1,472 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCart } from '@/lib/cart';
+import { useNotifications } from '@/lib/notifications';
+import { useAuth } from '@/lib/auth';
+import NotificationPanel from '@/components/NotificationPanel';
+import SiteFooter from '@/components/layout/SiteFooter';
+
+interface MainLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  headerRight?: React.ReactNode;
+  showSigurnost?: boolean;
+}
+
+export default function MainLayout({ children, headerRight }: MainLayoutProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [showSecurityInfo, setShowSecurityInfo] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const { items: cartItems } = useCart();
+  const { unreadCount } = useNotifications();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const isHome = pathname === '/';
+
+  return (
+    <div className="flex min-h-screen bg-[var(--c-bg)] text-[var(--c-text)] font-sans relative overflow-x-hidden selection:bg-blue-500/20">
+
+      {/* GLOBAL AMBIENCE BACKGROUND */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute -top-[10%] left-[20%] w-[40vw] h-[40vw] bg-[var(--c-glow-1)] rounded-full blur-[120px] animate-pulse-glow"></div>
+        <div className="absolute top-[10%] -right-[10%] w-[35vw] h-[35vw] bg-[var(--c-glow-2)] rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      {/* DESKTOP HEADER */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-20 px-6 md:px-8 flex items-center justify-between glass-nav border-b border-[var(--c-border)] backdrop-blur-xl transition-all duration-300 shadow-sm">
+
+        {/* LEFT: Logo & Brand + Info Buttons */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            onKeyDown={(e) => e.key === 'Enter' && router.push('/')}
+            aria-label="NudiNađi — idi na početnu stranicu"
+            className="flex items-center gap-3 cursor-pointer group"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo2.jpeg"
+              alt="NudiNađi emblem"
+              className="h-11 w-auto object-contain rounded-xl transition-transform group-hover:scale-105"
+            />
+            <span className="hidden md:inline text-2xl font-black tracking-tight text-[#1e293b] group-hover:text-blue-600 transition-colors">
+              nudi<span className="text-[#1e293b]">nađi</span>
+            </span>
+          </button>
+
+          {/* Info Buttons — desktop only */}
+          <div className="hidden lg:flex items-center gap-1.5 ml-1">
+            <div className="w-[1px] h-6 bg-[var(--c-border)] mr-1"></div>
+            <button
+              onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-full text-[10px] font-bold text-[var(--c-text3)] hover:text-blue-600 bg-[var(--c-hover)] hover:bg-blue-50 border border-[var(--c-border)] hover:border-blue-200 transition-all group"
+            >
+              <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                <i className="fa-solid fa-circle-info text-[8px] text-blue-500"></i>
+              </div>
+              Više informacija
+            </button>
+            <button
+              onClick={() => setShowHowItWorks(true)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-full text-[10px] font-bold text-[var(--c-text3)] hover:text-purple-600 bg-[var(--c-hover)] hover:bg-purple-50 border border-[var(--c-border)] hover:border-purple-200 transition-all group"
+            >
+              <div className="w-5 h-5 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+                <i className="fa-solid fa-question text-[8px] text-purple-500"></i>
+              </div>
+              Kako funkcioniše?
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Logo */}
+        <div className="md:hidden flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo2.jpeg"
+            alt="NudiNađi emblem"
+            className="h-9 w-auto object-contain rounded-lg"
+          />
+          <span className="text-lg font-black tracking-tight text-[#1e293b]">nudinađi</span>
+        </div>
+
+        {/* Desktop Centered "Novi Oglas" Button */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
+          <Link
+            href="/upload"
+            aria-label="Novi oglas — dodaj oglas"
+            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-full transition-all group ${
+              pathname === '/upload'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40 ring-2 ring-blue-400/20'
+                : 'blue-gradient text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-105'
+            }`}
+          >
+            <i className="fa-solid fa-plus text-sm group-hover:rotate-90 transition-transform duration-300" aria-hidden="true"></i>
+            <span className="text-[11px] font-black uppercase tracking-widest">Novi Oglas</span>
+          </Link>
+        </div>
+
+        {/* RIGHT: User Actions */}
+        <div className="flex items-center gap-2 md:gap-4">
+
+          {/* Search/Home Button (visible everywhere except Home) */}
+          {!isHome && (
+            <button
+              onClick={() => router.push('/')}
+              className="w-10 h-10 rounded-[12px] flex items-center justify-center bg-[var(--c-card-alt)] border border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-active)] transition-colors mr-1"
+              aria-label="Nazad na pretragu"
+            >
+              <i className="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+            </button>
+          )}
+
+          {/* Header Right Custom Actions */}
+          {headerRight && <div className="mr-2">{headerRight}</div>}
+
+          {/* Messages Icon — only when logged in */}
+          {isAuthenticated && (
+          <Link
+            href="/messages"
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              pathname === '/messages'
+                ? 'bg-blue-500 text-white border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]'
+                : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
+            }`}
+            aria-label="Poruke"
+          >
+            <div className="relative" aria-hidden="true">
+              <i className="fa-solid fa-comment-dots text-sm"></i>
+              <div className="absolute -top-2 -right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[var(--c-card)]"></div>
+            </div>
+          </Link>
+          )}
+
+          {/* Cart Icon */}
+          <Link
+            href="/cart"
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              pathname === '/cart'
+                ? 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
+            }`}
+            aria-label={`Korpa${cartItems.length > 0 ? ` (${cartItems.length})` : ''}`}
+          >
+            <div className="relative" aria-hidden="true">
+              <i className="fa-solid fa-bag-shopping text-sm"></i>
+              {cartItems.length > 0 && (
+                <div className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-emerald-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
+                  <span className="text-[8px] font-black text-white">{cartItems.length}</span>
+                </div>
+              )}
+            </div>
+          </Link>
+
+          {/* Notification Bell */}
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              showNotifications
+                ? 'bg-amber-500 text-white border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
+            }`}
+            aria-label={`Obavještenja${unreadCount > 0 ? ` (${unreadCount} nepročitanih)` : ''}`}
+            aria-expanded={showNotifications}
+          >
+            <div className="relative" aria-hidden="true">
+              <i className="fa-solid fa-bell text-sm"></i>
+              {unreadCount > 0 && (
+                <div className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-[var(--c-card)] flex items-center justify-center">
+                  <span className="text-[8px] font-black text-white">{unreadCount}</span>
+                </div>
+              )}
+            </div>
+          </button>
+
+          {/* Settings / Menu Icon — only when logged in */}
+          {isAuthenticated && (
+          <Link
+            href="/menu"
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              pathname === '/menu'
+                ? 'bg-gray-900 text-white border-gray-800 shadow-[0_0_15px_rgba(0,0,0,0.2)]'
+                : 'bg-[var(--c-card-alt)] border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-active)] hover:text-[var(--c-text2)]'
+            }`}
+            aria-label="Postavke"
+          >
+            <i className="fa-solid fa-gear text-sm" aria-hidden="true"></i>
+          </Link>
+          )}
+
+          {/* Divider */}
+          <div className="w-[1px] h-8 bg-[var(--c-border)] mx-1 hidden md:block"></div>
+
+          {/* Profile Avatar / Guest Button */}
+          {isAuthenticated && user ? (
+            <Link
+              href="/profile"
+              className={`relative group flex items-center gap-3 pl-1 pr-1 md:pr-4 py-1 rounded-full transition-all border ${
+                pathname === '/profile'
+                  ? 'bg-[var(--c-card-alt)] border-blue-500/50'
+                  : 'border-transparent hover:bg-[var(--c-card-alt)]'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-full p-[2px] ${pathname === '/profile' ? 'blue-gradient' : 'bg-[var(--c-border)] group-hover:bg-[var(--c-active)]'}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={user.avatarUrl || 'https://picsum.photos/seed/me/200/200'}
+                  alt={`${user.username} profil slika`}
+                  className="w-full h-full rounded-full object-cover border border-[var(--c-card)]"
+                />
+              </div>
+              <div className="hidden md:block text-left">
+                <p className={`text-[11px] font-bold leading-none ${pathname === '/profile' ? 'text-[var(--c-text)]' : 'text-[var(--c-text2)]'}`}>{user.username}</p>
+                <p className="text-[9px] text-blue-500 font-bold uppercase tracking-wider mt-0.5">Moj Profil</p>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="relative group flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full transition-all border border-[var(--c-border)] hover:bg-[var(--c-card-alt)]"
+            >
+              <div className="w-9 h-9 rounded-full bg-[var(--c-card-alt)] border border-[var(--c-border)] flex items-center justify-center">
+                <i className="fa-solid fa-user-slash text-sm text-[var(--c-text3)]"></i>
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-[11px] font-black leading-none text-[var(--c-text2)] uppercase tracking-widest">GOST</p>
+                <p className="text-[9px] text-blue-500 font-bold uppercase tracking-wider mt-0.5">Prijavi se</p>
+              </div>
+            </Link>
+          )}
+        </div>
+      </header>
+
+      {/* NOTIFICATION PANEL */}
+      <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+
+      {/* HOW IT WORKS MODAL */}
+      {showHowItWorks && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-6 md:p-10"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="how-it-works-title"
+        >
+          <div
+            className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-sm"
+            onClick={() => setShowHowItWorks(false)}
+            onKeyDown={(e) => e.key === 'Escape' && setShowHowItWorks(false)}
+          ></div>
+          <div className="relative w-full max-w-4xl bg-[var(--c-card)] border border-[var(--c-border)] rounded-[6px] shadow-2xl animate-fadeIn flex flex-col" style={{ height: 'min(85vh, 700px)' }}>
+
+            {/* HEADER */}
+            <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--c-border)]">
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo2.jpeg"
+                  alt="NudiNađi emblem"
+                  className="h-10 w-auto object-contain rounded-xl"
+                />
+                <div>
+                  <p className="text-base font-black text-[#1e293b] tracking-tight leading-none">nudinađi</p>
+                  <p className="text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-0.5">AI Powered Marketplace</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHowItWorks(false)}
+                className="w-8 h-8 rounded-[4px] bg-[var(--c-hover)] hover:bg-[var(--c-active)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)] transition-all"
+                aria-label="Zatvori"
+              >
+                <i className="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            {/* BODY — flex-1, no scroll, content fills height */}
+            <div className="flex-1 flex flex-col px-6 py-5 gap-5 min-h-0">
+
+              {/* TOP ROW: Hero + Stats */}
+              <div className="flex gap-6 shrink-0">
+                <div className="flex-1">
+                  <h2 id="how-it-works-title" className="text-4xl md:text-5xl font-black text-[var(--c-text)] uppercase leading-none tracking-tighter mb-3">
+                    TRGOVINA<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">REDEFINIRANA.</span>
+                  </h2>
+                  <div className="w-10 h-[3px] bg-blue-500 mb-3"></div>
+                  <p className="text-[12px] text-[var(--c-text2)] leading-relaxed max-w-[380px]">
+                    NudiNađi nije samo još jedan oglasnik. To je inteligentni ekosistem koji razumije šta želiš, prije nego što to i sam znaš.
+                  </p>
+                </div>
+                <div className="flex gap-3 shrink-0">
+                  <div className="w-36 bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4">
+                    <i className="fa-solid fa-bolt text-[var(--c-text3)] text-xl mb-3 block"></i>
+                    <p className="text-3xl font-black text-[var(--c-text)] leading-none mb-1">0.2s</p>
+                    <p className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-widest">Brzina Pretrage</p>
+                  </div>
+                  <div className="w-36 bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-4">
+                    <i className="fa-solid fa-brain text-[var(--c-text3)] text-xl mb-3 block"></i>
+                    <p className="text-3xl font-black text-[var(--c-text)] leading-none mb-1">99%</p>
+                    <p className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-widest">AI Preciznost</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION LABEL */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-8 h-[2px] bg-blue-500"></div>
+                <p className="text-[9px] font-black text-[var(--c-text3)] uppercase tracking-[0.25em]">Kako to zapravo radi?</p>
+              </div>
+
+              {/* FEATURE CARDS — flex-1 to fill remaining height */}
+              <div className="grid grid-cols-3 gap-4 flex-1 min-h-0">
+                <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-blue-500/40 transition-colors flex flex-col">
+                  <div className="absolute top-0 right-0 w-14 h-14 bg-blue-500/20 rounded-bl-[35px]"></div>
+                  <div className="w-10 h-10 rounded-[4px] bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4 shrink-0">
+                    <i className="fa-solid fa-magnifying-glass-chart text-blue-400 text-sm"></i>
+                  </div>
+                  <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">1. Kontekstualna<br />Pretraga</h3>
+                  <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
+                    Zaboravi na ključne riječi i filtere. Naš AI razumije prirodni jezik. Napiši <span className="text-[var(--c-text)] font-bold">&ldquo;Trebam laptop za faks do 500 KM&rdquo;</span> i sistem će automatski filtrirati kategoriju, cijenu i specifikacije.
+                  </p>
+                </div>
+
+                <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-purple-500/40 transition-colors flex flex-col">
+                  <div className="absolute top-0 right-0 w-14 h-14 bg-purple-500/20 rounded-bl-[35px]"></div>
+                  <div className="w-10 h-10 rounded-[4px] bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4 shrink-0">
+                    <i className="fa-solid fa-camera text-purple-400 text-sm"></i>
+                  </div>
+                  <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">2. Vizualna<br />Prodaja</h3>
+                  <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
+                    Prodaja nikad nije bila brža. Uslikaj predmet, a naš <span className="text-[var(--c-text)] font-bold">Computer Vision</span> model će ga prepoznati, kategorirati i predložiti opis. Tvoj oglas je online za manje od 30 sekundi.
+                  </p>
+                </div>
+
+                <div className="bg-[var(--c-hover)] border border-[var(--c-border)] rounded-[4px] p-5 relative overflow-hidden hover:border-orange-500/40 transition-colors flex flex-col">
+                  <div className="absolute top-0 right-0 w-14 h-14 bg-orange-500/20 rounded-bl-[35px]"></div>
+                  <div className="w-10 h-10 rounded-[4px] bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mb-4 shrink-0">
+                    <i className="fa-solid fa-spell-check text-orange-400 text-sm"></i>
+                  </div>
+                  <h3 className="text-[11px] font-black text-[var(--c-text)] uppercase tracking-wide mb-2">3. AI Search &<br />AI Category</h3>
+                  <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
+                    Napiši <span className="text-[var(--c-text)] font-bold">&ldquo;bmv 3&rdquo;</span> ili <span className="text-[var(--c-text)] font-bold">&ldquo;iphone&rdquo;</span> — AI ispravlja greške i pronalazi pravo. <span className="text-[var(--c-text)] font-bold">AI Category</span> automatski prepoznaje kategoriju iz opisa, bez ručnog biranja.
+                  </p>
+                </div>
+              </div>
+
+              {/* BOTTOM QUOTE */}
+              <div className="shrink-0 text-center pt-4 border-t border-[var(--c-border)]">
+                <p className="text-lg font-black text-[var(--c-text)] uppercase tracking-tight mb-1">
+                  &ldquo;Tehnologija koja radi za tebe.&rdquo;
+                </p>
+                <p className="text-[8px] font-bold text-[var(--c-text-muted)] uppercase tracking-[0.3em]">Powered by NudiNađi AI Core</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GUEST LOGIN BANNER */}
+      {!authLoading && !isAuthenticated && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-blue-600 text-white px-4 py-2.5 flex items-center justify-center gap-3">
+          <i className="fa-solid fa-user-plus text-xs opacity-80"></i>
+          <span className="text-[11px] font-bold">Gost si — prijavi se ili napravi profil!</span>
+          <Link href="/login" className="ml-2 px-3 py-1 bg-white text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-blue-50 transition-colors">
+            Prijavi se
+          </Link>
+        </div>
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <div className={`flex-1 flex flex-col ${!authLoading && !isAuthenticated ? 'pt-32' : 'pt-24'} min-w-0 relative z-10`}>
+
+        {/* SECURITY INFO MODAL */}
+        {showSecurityInfo && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-sm" onClick={() => setShowSecurityInfo(false)}></div>
+            <div className="relative bg-[var(--c-card)] border border-[var(--c-border)] w-full max-w-sm rounded-[32px] p-6 shadow-2xl overflow-hidden animate-fadeIn">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-[40px] pointer-events-none"></div>
+
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <i className="fa-solid fa-shield-halved text-3xl text-blue-500"></i>
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-black text-[var(--c-text)] uppercase tracking-tight">AI Zaštita</h2>
+                  <p className="text-xs text-blue-500 font-bold uppercase tracking-widest mt-1">Sigurnost na prvom mjestu</p>
+                </div>
+
+                <div className="bg-[var(--c-card-alt)] rounded-[20px] p-4 w-full border border-[var(--c-border)] text-left space-y-3">
+                  <div className="flex gap-3">
+                    <i className="fa-solid fa-user-shield text-emerald-500 mt-1"></i>
+                    <div>
+                      <h4 className="text-[12px] font-bold text-[var(--c-text)]">Anti-Scam Detekcija</h4>
+                      <p className="text-[10px] text-[var(--c-text3)] leading-relaxed">
+                        Naš AI analizira ponašanje korisnika i sumnjive poruke kako bi spriječio prevare prije nego se dogode.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSecurityInfo(false)}
+                  className="w-full py-3 rounded-[16px] bg-[var(--c-card-alt)] hover:bg-[var(--c-active)] border border-[var(--c-border)] text-[var(--c-text2)] text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Razumijem
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Page Content */}
+        <main className="flex-1 px-4 md:px-8 w-full mx-auto pb-6">
+          {children}
+        </main>
+
+        {/* SITE FOOTER — shown on every page */}
+        <SiteFooter />
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <div className="md:hidden fixed bottom-12 left-1/2 -translate-x-1/2 z-[100]">
+        <Link href="/upload" aria-label="Novi oglas" className="w-14 h-14 blue-gradient text-white rounded-full flex items-center justify-center btn-plus-shadow border-[4px] border-[var(--c-card)] hover:scale-105 transition-transform shadow-2xl">
+          <i className="fa-solid fa-plus text-2xl" aria-hidden="true"></i>
+        </Link>
+      </div>
+
+      <nav aria-label="Mobilna navigacija" className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[360px] glass-nav px-4 py-3 flex justify-between items-center z-[90] rounded-[24px] border border-[var(--c-border)] shadow-lg">
+        <Link href="/" aria-label="Početna" aria-current={pathname === '/' ? 'page' : undefined} className={`flex flex-col items-center gap-1 transition-all ${pathname === '/' ? 'text-blue-600' : 'text-[var(--c-text3)]'}`}>
+          <i className="fa-solid fa-house text-lg" aria-hidden="true"></i>
+          <span className="text-[9px] font-medium">Početna</span>
+        </Link>
+
+        {isAuthenticated && (
+        <Link href="/messages" aria-label="Poruke" aria-current={pathname === '/messages' ? 'page' : undefined} className={`flex flex-col items-center gap-1 transition-all ${pathname === '/messages' ? 'text-blue-600' : 'text-[var(--c-text3)]'}`}>
+          <i className="fa-solid fa-comment-dots text-lg" aria-hidden="true"></i>
+          <span className="text-[9px] font-medium">Poruke</span>
+        </Link>
+        )}
+
+        <div className="w-8" aria-hidden="true"></div>
+
+        <Link href={isAuthenticated ? '/profile' : '/login'} aria-label={isAuthenticated ? 'Profil' : 'Prijavi se'} aria-current={pathname === '/profile' ? 'page' : undefined} className={`flex flex-col items-center gap-1 transition-all ${pathname === '/profile' ? 'text-blue-600' : 'text-[var(--c-text3)]'}`}>
+          <i className={`fa-solid ${isAuthenticated ? 'fa-user' : 'fa-right-to-bracket'} text-lg`} aria-hidden="true"></i>
+          <span className="text-[9px] font-medium">{isAuthenticated ? 'Profil' : 'Login'}</span>
+        </Link>
+
+        {isAuthenticated && (
+        <Link href="/menu" aria-label="Meni" aria-current={pathname === '/menu' ? 'page' : undefined} className={`flex flex-col items-center gap-1 transition-all ${pathname === '/menu' ? 'text-blue-600' : 'text-[var(--c-text3)]'}`}>
+          <i className="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+          <span className="text-[9px] font-medium">Meni</span>
+        </Link>
+        )}
+      </nav>
+    </div>
+  );
+}

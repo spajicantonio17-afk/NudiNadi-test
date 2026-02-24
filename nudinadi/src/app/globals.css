@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ===== NudiNađi Theme Variables (Light) ===== */
+    --c-bg: #FAFBFD;
+    --c-card: #FFFFFF;
+    --c-card-alt: #F3F4F6;
+    --c-input: #F9FAFB;
+    --c-text: #111827;
+    --c-text2: #6B7280;
+    --c-text3: #9CA3AF;
+    --c-text-muted: #D1D5DB;
+    --c-border: #E5E7EB;
+    --c-border2: rgba(209, 213, 219, 0.5);
+    --c-hover: #F3F4F6;
+    --c-active: #E5E7EB;
+    --c-overlay: rgba(0, 0, 0, 0.4);
+    --c-overlay-heavy: rgba(0, 0, 0, 0.6);
+    --c-glass: rgba(255, 255, 255, 0.82);
+    --c-glass-border: rgba(229, 231, 235, 0.8);
+    --c-glow-1: rgba(219, 234, 254, 0.4);
+    --c-glow-2: rgba(233, 213, 255, 0.3);
+    --c-badge-bg: rgba(255, 255, 255, 0.05);
+    --c-xp-bar-bg: #E5E7EB;
+    --c-avatar-border-from: #E5E7EB;
+    --c-avatar-border-to: #D1D5DB;
+    --c-grid-line: rgba(0, 0, 0, 0.03);
+    --c-placeholder: #9CA3AF;
+    --c-star-off: #D1D5DB;
+
+    /* shadcn/ui variables */
+    --background: 210 20% 98%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 20% 10%;
+    --muted: 210 15% 95%;
+    --muted-foreground: 215 15% 47%;
+    --accent: 210 15% 95%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    /* ===== NudiNađi Theme Variables (Dark) ===== */
+    --c-bg: #060E14;
+    --c-card: #121C26;
+    --c-card-alt: #0B151E;
+    --c-input: #0B151E;
+    --c-text: #FFFFFF;
+    --c-text2: #9CA3AF;
+    --c-text3: #6B7280;
+    --c-text-muted: #374151;
+    --c-border: rgba(255, 255, 255, 0.05);
+    --c-border2: rgba(255, 255, 255, 0.1);
+    --c-hover: rgba(255, 255, 255, 0.05);
+    --c-active: rgba(255, 255, 255, 0.1);
+    --c-overlay: rgba(0, 0, 0, 0.8);
+    --c-overlay-heavy: rgba(0, 0, 0, 0.9);
+    --c-glass: rgba(6, 14, 20, 0.82);
+    --c-glass-border: rgba(255, 255, 255, 0.1);
+    --c-glow-1: rgba(37, 99, 235, 0.1);
+    --c-glow-2: rgba(147, 51, 234, 0.1);
+    --c-badge-bg: rgba(255, 255, 255, 0.05);
+    --c-xp-bar-bg: #060E14;
+    --c-avatar-border-from: #374151;
+    --c-avatar-border-to: #000000;
+    --c-grid-line: rgba(255, 255, 255, 0.02);
+    --c-placeholder: #374151;
+    --c-star-off: #374151;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    background-color: var(--c-bg);
+    color: var(--c-text);
+  }
+
+  /* Fix native <select> dropdown options — force readable text on all OS/browser combos */
+  select {
+    background-color: var(--c-card, #ffffff);
+    color: var(--c-text, #111827);
+  }
+  select option {
+    background-color: #ffffff;
+    color: #111827;
+  }
+  .dark select option {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}
+
+/* ===== NudiNađi Custom Utility Classes ===== */
+
+@layer utilities {
+  .blue-gradient {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  }
+
+  .glass-nav {
+    background: var(--c-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .btn-plus-shadow {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.35), 0 0 60px rgba(59, 130, 246, 0.12);
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bg-card-surface {
+    background-color: var(--c-card);
+  }
+
+  .card-shadow {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-shadow-hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* ===== Custom Animations ===== */
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-20deg);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

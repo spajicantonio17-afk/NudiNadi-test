@@ -42,12 +42,17 @@ export default function LoginPage() {
       }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   return (
     <div className="min-h-screen bg-[var(--c-bg)] text-[var(--c-text)] flex flex-col items-center justify-center p-8 relative overflow-hidden">
         {/* Background Ambience */}
         <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <div className="w-full max-w-xs space-y-5 z-10 animate-[fadeIn_0.3s_ease-out]">
+        <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-5 z-10 animate-[fadeIn_0.3s_ease-out]">
             <div className="text-center mb-8">
                 <div onClick={() => router.push('/')} className="w-16 h-16 bg-blue-600 rounded-[20px] flex items-center justify-center text-white text-2xl font-black italic shadow-lg shadow-blue-500/20 mx-auto mb-6 cursor-pointer">
                     N
@@ -66,11 +71,13 @@ export default function LoginPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Email</label>
                         <input
                             type="email"
+                            name="email"
                             autoComplete="email"
+                            inputMode="email"
                             value={formData.email}
                             onChange={e => { setFormData({...formData, email: e.target.value}); if (errors.email) setErrors({...errors, email: undefined}); }}
                             placeholder="tvoj@email.com"
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                   </div>
@@ -86,10 +93,12 @@ export default function LoginPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Lozinka</label>
                         <input
                             type="password"
+                            name="password"
+                            autoComplete="current-password"
                             value={formData.password}
                             onChange={e => { setFormData({...formData, password: e.target.value}); if (errors.password) setErrors({...errors, password: undefined}); }}
                             placeholder="••••••••"
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                   </div>
@@ -103,13 +112,14 @@ export default function LoginPage() {
                 </div>
             )}
 
-            <button onClick={handleLogin} disabled={isLoading} className="w-full py-4 rounded-[20px] blue-gradient text-white font-black text-xs uppercase tracking-[2px] shadow-xl shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
+            <button type="submit" disabled={isLoading} className="w-full py-4 rounded-[20px] blue-gradient text-white font-black text-xs uppercase tracking-[2px] shadow-xl shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
                 {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : <><i className="fa-solid fa-arrow-right-to-bracket"></i> Prijavi se</>}
             </button>
 
             <div className="text-center mt-6">
                 <p className="text-[10px] text-[var(--c-text3)] font-bold uppercase tracking-widest mb-3">Nemaš račun?</p>
                 <button
+                    type="button"
                     onClick={() => router.push('/register')}
                     className="px-6 py-3 rounded-full border border-[var(--c-border2)] text-[10px] font-bold text-[var(--c-text)] hover:bg-[var(--c-hover)] transition-colors uppercase tracking-wider"
                 >
@@ -117,12 +127,13 @@ export default function LoginPage() {
                 </button>
             </div>
              <button
+                type="button"
                 onClick={() => router.push('/')}
                 className="w-full text-center py-4 text-[10px] text-[var(--c-text-muted)] hover:text-[var(--c-text)] transition-colors uppercase tracking-widest"
             >
                 Nastavi kao Gost
             </button>
-        </div>
+        </form>
     </div>
   );
 }

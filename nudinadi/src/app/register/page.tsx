@@ -54,6 +54,11 @@ export default function RegisterPage() {
       }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleRegister();
+  };
+
   if (showConfirmation) {
     return (
       <div className="min-h-screen bg-[var(--c-bg)] text-[var(--c-text)] flex flex-col items-center justify-center p-8">
@@ -82,7 +87,7 @@ export default function RegisterPage() {
         {/* Background Ambience */}
         <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <div className="w-full max-w-xs space-y-4 z-10 animate-[fadeIn_0.3s_ease-out]">
+        <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-4 z-10 animate-[fadeIn_0.3s_ease-out]">
             <div className="text-center mb-6">
                  <div onClick={() => router.push('/')} className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[20px] flex items-center justify-center text-white text-2xl font-black italic shadow-lg shadow-purple-500/20 mx-auto mb-6 cursor-pointer">
                     <i className="fa-solid fa-user-plus"></i>
@@ -101,9 +106,12 @@ export default function RegisterPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Email</label>
                         <input
                             type="email"
+                            name="email"
+                            autoComplete="email"
+                            inputMode="email"
                             value={formData.email}
                             onChange={e => { setFormData({...formData, email: e.target.value}); if (errors.email) setErrors({...errors, email: undefined}); }}
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
                         />
                     </div>
                   </div>
@@ -119,9 +127,11 @@ export default function RegisterPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Lozinka</label>
                         <input
                             type="password"
+                            name="password"
+                            autoComplete="new-password"
                             value={formData.password}
                             onChange={e => { setFormData({...formData, password: e.target.value}); if (errors.password) setErrors({...errors, password: undefined}); }}
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
                         />
                     </div>
                   </div>
@@ -137,9 +147,11 @@ export default function RegisterPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Ponovi Lozinku</label>
                         <input
                             type="password"
+                            name="confirmPassword"
+                            autoComplete="new-password"
                             value={formData.confirmPassword}
                             onChange={e => { setFormData({...formData, confirmPassword: e.target.value}); if (errors.confirmPassword) setErrors({...errors, confirmPassword: undefined}); }}
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none"
                         />
                     </div>
                   </div>
@@ -154,10 +166,13 @@ export default function RegisterPage() {
                         <label className="text-[8px] font-bold text-[var(--c-text3)] uppercase tracking-wider block mb-0.5">Telefon <span className="opacity-50 lowercase">(opcionalno)</span></label>
                         <input
                             type="tel"
+                            name="phone"
+                            autoComplete="tel"
+                            inputMode="tel"
                             value={formData.phone}
                             onChange={e => setFormData({...formData, phone: e.target.value})}
                             placeholder="+387 6..."
-                            className="w-full bg-transparent text-sm text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
+                            className="w-full bg-transparent text-base text-[var(--c-text)] font-bold outline-none placeholder:text-[var(--c-placeholder)]"
                         />
                     </div>
                 </div>
@@ -169,20 +184,21 @@ export default function RegisterPage() {
                 </div>
             )}
 
-            <button onClick={handleRegister} disabled={isLoading} className="w-full py-4 rounded-[20px] blue-gradient text-white font-black text-xs uppercase tracking-[2px] shadow-xl shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
+            <button type="submit" disabled={isLoading} className="w-full py-4 rounded-[20px] blue-gradient text-white font-black text-xs uppercase tracking-[2px] shadow-xl shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
                 {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : <><i className="fa-solid fa-user-plus"></i> Registriraj se</>}
             </button>
 
             <div className="text-center mt-4">
                  <p className="text-[10px] text-[var(--c-text3)] font-bold uppercase tracking-widest mb-3">Već imaš račun?</p>
                  <button
+                    type="button"
                     onClick={() => router.push('/login')}
                     className="px-6 py-3 rounded-full border border-[var(--c-border2)] text-[10px] font-bold text-[var(--c-text)] hover:bg-[var(--c-hover)] transition-colors uppercase tracking-wider"
                 >
                     Prijavi se
                 </button>
             </div>
-        </div>
+        </form>
     </div>
   );
 }

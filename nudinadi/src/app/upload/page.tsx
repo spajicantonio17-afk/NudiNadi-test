@@ -379,9 +379,22 @@ function UploadPageInner() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/login?redirect=/upload');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Show loading while auth state is settling
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <i className="fa-solid fa-spinner animate-spin text-2xl text-blue-500"></i>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   // Load existing product data when in edit mode
   useEffect(() => {

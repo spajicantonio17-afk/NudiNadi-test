@@ -171,11 +171,9 @@ function MessagesContent() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/login?redirect=/messages');
     }
   }, [isLoading, isAuthenticated, router]);
-
-  // ── State ───────────────────────────────────────────
   const [conversations, setConversations] = useState<ContactItem[]>([]);
   const [loadingConvos, setLoadingConvos] = useState(true);
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
@@ -342,7 +340,17 @@ function MessagesContent() {
     conversations.find(c => c.id === selectedConvId) || null
   , [selectedConvId, conversations]);
 
-  if (isLoading || !isAuthenticated) return null;
+  if (isLoading) {
+    return (
+      <MainLayout title="Poruke" showSigurnost={false} headerRight={null}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <i className="fa-solid fa-spinner animate-spin text-2xl text-blue-500"></i>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <MainLayout title="Poruke" showSigurnost={false} headerRight={null}>

@@ -213,7 +213,7 @@ function ProfileContent() {
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/login?redirect=/profile');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -331,6 +331,18 @@ function ProfileContent() {
     Dojmovi: totalReviews,
     Arhiv: draftProducts.length,
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Moj Profil" showSigurnost={false}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <i className="fa-solid fa-spinner animate-spin text-2xl text-blue-500"></i>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <MainLayout title="Moj Profil" showSigurnost={false}>

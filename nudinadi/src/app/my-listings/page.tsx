@@ -29,7 +29,7 @@ export default function MyListingsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.replace('/login');
+    if (!authLoading && !isAuthenticated) router.replace('/login?redirect=/my-listings');
   }, [authLoading, isAuthenticated, router]);
 
   const loadProducts = useCallback(() => {
@@ -87,6 +87,18 @@ export default function MyListingsPage() {
       setDeletingId(null);
     }
   };
+
+  if (authLoading) {
+    return (
+      <MainLayout title="Moji Oglasi" showSigurnost={false}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <i className="fa-solid fa-spinner animate-spin text-2xl text-blue-500"></i>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <MainLayout title="Moji Oglasi" showSigurnost={false}>

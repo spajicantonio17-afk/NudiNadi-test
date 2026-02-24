@@ -23,7 +23,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/login?redirect=/favorites');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -35,6 +35,18 @@ export default function FavoritesPage() {
       .catch(console.error)
       .finally(() => setLoadingFavs(false));
   }, [user?.id]);
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <i className="fa-solid fa-spinner animate-spin text-2xl text-blue-500"></i>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   const handleRemove = async (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();

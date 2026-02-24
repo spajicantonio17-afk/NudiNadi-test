@@ -1141,7 +1141,7 @@ function UploadPageInner() {
   // 1. Selection (Main categories) - CENTERED BENTO STYLE
   if (step === 'selection') {
     return (
-      <MainLayout title="Kategorija" showSigurnost={false} headerRight={
+      <MainLayout title="Kategorija" showSigurnost={false} hideSearchOnMobile headerRight={
         <div className="flex items-center gap-1.5 md:gap-2">
           <button onClick={() => setShowAiInfo(true)} className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-[8px] text-[10px] md:text-[11px] font-bold text-blue-500 hover:text-blue-600 bg-blue-500/5 hover:bg-blue-50 border border-blue-500/20 hover:border-blue-300 transition-all group">
             <div className="w-5 h-5 md:w-6 md:h-6 rounded-[5px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
@@ -1376,7 +1376,7 @@ function UploadPageInner() {
       : CATEGORIES;
 
     return (
-      <MainLayout title="Sve Kategorije" showSigurnost={false} headerRight={
+      <MainLayout title="Sve Kategorije" showSigurnost={false} hideSearchOnMobile headerRight={
         <button onClick={() => { setStep('selection'); setCatSearch(''); setExpandedCat(null); }} className="w-10 h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)]"><i className="fa-solid fa-arrow-left"></i></button>
       }>
         <div className="max-w-4xl mx-auto space-y-3 pt-2 pb-24">
@@ -1499,7 +1499,7 @@ function UploadPageInner() {
     searchPlaceholder: string,
     aiLabel: string
   ) => (
-    <MainLayout title={title} showSigurnost={false} headerRight={
+    <MainLayout title={title} showSigurnost={false} hideSearchOnMobile headerRight={
       <button onClick={() => setStep('selection')} className="w-10 h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)]"><i className="fa-solid fa-arrow-left"></i></button>
     }>
       <div className="space-y-4 pt-2 pb-24">
@@ -1577,7 +1577,7 @@ function UploadPageInner() {
   // Poslovi Sub-Selection (unique layout with sticky search)
   if (step === 'poslovi-sub') {
     return (
-      <MainLayout title="Poslovi" showSigurnost={false} headerRight={
+      <MainLayout title="Poslovi" showSigurnost={false} hideSearchOnMobile headerRight={
         <button onClick={() => setStep('selection')} className="w-10 h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)]"><i className="fa-solid fa-arrow-left"></i></button>
       }>
         <div className="pb-24 relative min-h-screen">
@@ -1646,7 +1646,7 @@ function UploadPageInner() {
       : CAR_BRANDS;
 
     return (
-      <MainLayout title="Vozila" showSigurnost={false} headerRight={
+      <MainLayout title="Vozila" showSigurnost={false} hideSearchOnMobile headerRight={
         <button onClick={() => setStep('selection')} className="w-10 h-10 rounded-full bg-[var(--c-hover)] flex items-center justify-center text-[var(--c-text3)] hover:text-[var(--c-text)]"><i className="fa-solid fa-arrow-left"></i></button>
       }>
         <div className="pb-24 pt-2 space-y-6 px-1">
@@ -1792,6 +1792,7 @@ function UploadPageInner() {
     <MainLayout
       title={isEditMode ? 'Uredi Oglas' : 'Novi Oglas'}
       showSigurnost={false}
+      hideSearchOnMobile
       headerRight={
         <button
           onClick={() => { if (formPage === 3) { setFormPage(2); window.scrollTo({ top: 0, behavior: 'smooth' }); } else if (formPage === 2) { setFormPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { setStep('selection'); } }}

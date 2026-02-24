@@ -14,9 +14,10 @@ interface MainLayoutProps {
   title?: string;
   headerRight?: React.ReactNode;
   showSigurnost?: boolean;
+  hideSearchOnMobile?: boolean;
 }
 
-export default function MainLayout({ children, headerRight }: MainLayoutProps) {
+export default function MainLayout({ children, headerRight, hideSearchOnMobile }: MainLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
@@ -107,7 +108,7 @@ export default function MainLayout({ children, headerRight }: MainLayoutProps) {
           {!isHome && (
             <button
               onClick={() => router.push('/')}
-              className="w-8 h-8 md:w-10 md:h-10 rounded-[10px] md:rounded-[12px] flex items-center justify-center bg-[var(--c-card-alt)] border border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-active)] transition-colors mr-0.5 md:mr-1"
+              className={`w-8 h-8 md:w-10 md:h-10 rounded-[10px] md:rounded-[12px] flex items-center justify-center bg-[var(--c-card-alt)] border border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-active)] transition-colors mr-0.5 md:mr-1${hideSearchOnMobile ? ' hidden md:flex' : ''}`}
               aria-label="Nazad na pretragu"
             >
               <i className="fa-solid fa-magnifying-glass text-xs md:text-sm" aria-hidden="true"></i>

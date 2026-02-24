@@ -577,7 +577,7 @@ function ProfileContent() {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/5 blur-[40px] rounded-full"></div>
 
             <div className="relative z-10">
-                {/* Top row: Avatar + Name + Level */}
+                {/* Top row: Avatar + Name */}
                 <div className="flex items-start gap-4">
                     {/* Avatar Area */}
                     <div className="relative shrink-0 mt-1">
@@ -616,24 +616,39 @@ function ProfileContent() {
                         </div>
                     </div>
 
-                    {/* Level — compact on mobile, full on desktop */}
-                    <div className="shrink-0 flex flex-col items-end">
+                    {/* Level — desktop only (inline), hidden on mobile */}
+                    <div className="shrink-0 hidden md:flex flex-col items-end">
                         <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-[9px] md:text-[10px] font-black text-[var(--c-text3)] uppercase tracking-widest">Level</span>
-                            <span className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-500 italic drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{userLevel}</span>
+                            <span className="text-[10px] font-black text-[var(--c-text3)] uppercase tracking-widest">Level</span>
+                            <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-500 italic drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{userLevel}</span>
                         </div>
-                        <div className="w-24 md:w-44 mb-1.5 relative group">
-                            <div className="hidden md:flex justify-between text-[9px] font-bold text-[var(--c-text2)] mb-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                        <div className="w-44 mb-1.5 relative group">
+                            <div className="flex justify-between text-[9px] font-bold text-[var(--c-text2)] mb-1 opacity-90 group-hover:opacity-100 transition-opacity">
                                 <span className="text-blue-400">{xpProgress.current} XP</span>
                                 <span>{xpProgress.needed} XP</span>
                             </div>
-                            <div className="h-2 md:h-2.5 bg-[var(--c-xp-bar-bg)] rounded-full overflow-hidden border border-[var(--c-border2)] p-[1px] shadow-inner">
+                            <div className="h-2.5 bg-[var(--c-xp-bar-bg)] rounded-full overflow-hidden border border-[var(--c-border2)] p-[1px] shadow-inner">
                                 <div className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.5)] relative overflow-hidden" style={{ width: `${xpProgress.progress}%` }}>
                                     <div className="absolute inset-0 bg-white/30 skew-x-[-20deg] animate-[shimmer_2s_infinite]"></div>
                                 </div>
                             </div>
-                            <p className="md:hidden text-[8px] text-[var(--c-text3)] text-right mt-0.5">{xpProgress.current}/{xpProgress.needed} XP</p>
                         </div>
+                    </div>
+                </div>
+
+                {/* Level — mobile only (full width row below avatar+name) */}
+                <div className="md:hidden flex items-center gap-3 mt-3 px-1">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[9px] font-black text-[var(--c-text3)] uppercase tracking-widest">Level</span>
+                        <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-500 italic">{userLevel}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="h-2 bg-[var(--c-xp-bar-bg)] rounded-full overflow-hidden border border-[var(--c-border2)] p-[1px] shadow-inner">
+                            <div className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.5)] relative overflow-hidden" style={{ width: `${xpProgress.progress}%` }}>
+                                <div className="absolute inset-0 bg-white/30 skew-x-[-20deg] animate-[shimmer_2s_infinite]"></div>
+                            </div>
+                        </div>
+                        <p className="text-[8px] text-[var(--c-text3)] text-right mt-0.5">{xpProgress.current}/{xpProgress.needed} XP</p>
                     </div>
                 </div>
 
